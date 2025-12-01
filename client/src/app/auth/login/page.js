@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { Brain, Mail, Lock } from "lucide-react";
@@ -11,6 +11,12 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // 🔒 Redirect if already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) router.replace("/dashboard");
+  }, []);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -34,7 +40,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen w-full flex bg-[#0A0F1F] relative overflow-hidden">
 
-      {/* LEFT SECTION (MATCHES SIGNUP) */}
+      {/* LEFT SECTION */}
       <div className="w-[55%] flex flex-col justify-center pl-28 pr-10 text-white relative">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -69,7 +75,7 @@ export default function LoginPage() {
         </motion.p>
       </div>
 
-      {/* RIGHT SECTION (MIRRORS SIGNUP CARD) */}
+      {/* RIGHT SECTION */}
       <motion.div
         initial={{ opacity: 0, x: 40 }}
         animate={{ opacity: 1, x: 0 }}
@@ -87,12 +93,8 @@ export default function LoginPage() {
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-7">
-
-            {/* EMAIL */}
             <div>
-              <label className="text-gray-300 text-sm font-medium">
-                Email
-              </label>
+              <label className="text-gray-300 text-sm font-medium">Email</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
                 <input
@@ -106,13 +108,10 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* PASSWORD */}
             <div>
-              <label className="text-gray-300 text-sm font-medium">
-                Password
-              </label>
+              <label className="text-gray-300 text-sm font-medium">Password</label>
               <div className="relative">
-                <Lock className="absolute left-4 top-4 h-5 w-5 text-gray-400 " />
+                <Lock className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
                 <input
                   type="password"
                   name="password"
@@ -124,11 +123,8 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {error && (
-              <p className="text-red-400 text-center text-sm">{error}</p>
-            )}
+            {error && <p className="text-red-400 text-center text-sm">{error}</p>}
 
-            {/* SUBMIT BUTTON */}
             <button
               type="submit"
               disabled={loading}
@@ -139,13 +135,12 @@ export default function LoginPage() {
           </form>
 
           <p className="text-gray-400 text-center mt-8 text-sm">
-            Don’t have an account?{" "}
+            Do not have an account?{" "}
             <Link href="/auth/signup" className="text-blue-400 hover:underline">
               Sign Up
             </Link>
           </p>
 
-          {/* TERMS */}
           <p className="text-center mt-8 text-gray-400 text-xs">
             By continuing, you agree to DevSync's{" "}
             <Link href="/terms" className="text-blue-400 hover:underline">
@@ -154,8 +149,7 @@ export default function LoginPage() {
             and{" "}
             <Link href="/privacy" className="text-blue-400 hover:underline">
               Privacy Policy
-            </Link>
-            .
+            </Link>.
           </p>
         </div>
       </motion.div>

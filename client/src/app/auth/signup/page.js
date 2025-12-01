@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { Brain } from "lucide-react";
@@ -12,6 +12,12 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // 🔒 Redirect if already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) router.replace("/dashboard");
+  }, []);
+
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -19,6 +25,7 @@ export default function SignupPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
+
     try {
       const res = await axios.post("http://localhost:8080/api/auth/signup", form);
       localStorage.setItem("token", res.data.token);
@@ -88,11 +95,8 @@ export default function SignupPage() {
 
           <form onSubmit={handleSubmit} className="space-y-7">
 
-            {/* Full Name */}
             <div>
-              <label className="text-gray-300 text-sm font-medium">
-                Full Name
-              </label>
+              <label className="text-gray-300 text-sm font-medium">Full Name</label>
               <input
                 type="text"
                 name="name"
@@ -103,11 +107,8 @@ export default function SignupPage() {
               />
             </div>
 
-            {/* Email */}
             <div>
-              <label className="text-gray-300 text-sm font-medium">
-                Email
-              </label>
+              <label className="text-gray-300 text-sm font-medium">Email</label>
               <input
                 type="email"
                 name="email"
@@ -118,11 +119,8 @@ export default function SignupPage() {
               />
             </div>
 
-            {/* Password */}
             <div>
-              <label className="text-gray-300 text-sm font-medium">
-                Password
-              </label>
+              <label className="text-gray-300 text-sm font-medium">Password</label>
               <input
                 type="password"
                 name="password"
@@ -133,11 +131,8 @@ export default function SignupPage() {
               />
             </div>
 
-            {error && (
-              <p className="text-red-400 text-center text-sm">{error}</p>
-            )}
+            {error && <p className="text-red-400 text-center text-sm">{error}</p>}
 
-            {/* Submit */}
             <button
               type="submit"
               disabled={loading}

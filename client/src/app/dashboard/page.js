@@ -1,13 +1,22 @@
 "use client";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Brain, Target, BookOpen, Users, TrendingUp, Plus } from "lucide-react";
 import { motion } from "framer-motion";
-import Navbar from "../components/Navbar";
 
 export default function Dashboard() {
+  const router = useRouter();
+
+  // 🔒 Redirect if NOT logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) router.replace("/auth/login");
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
-
       <main className="max-w-7xl mx-auto px-6 py-10">
+
         <div className="mb-10">
           <h2 className="text-3xl font-bold mb-2 flex items-center gap-2">
             Welcome back, Developer! <span>👋</span>
@@ -41,6 +50,7 @@ export default function Dashboard() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -58,12 +68,14 @@ export default function Dashboard() {
             <GoalCard title="Learn TypeScript Advanced Features" progress={40} />
             <GoalCard title="Build 3 Full-Stack Projects" progress={33} />
           </motion.div>
+
           <div className="space-y-6">
             <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100">
               <h4 className="text-lg font-semibold mb-2">Learning Streak</h4>
               <p className="text-gray-500 text-sm mb-4">Keep it going!</p>
               <p className="text-blue-600 text-4xl font-bold">12</p>
               <p className="text-gray-500 text-sm">Days in a row</p>
+
               <div className="flex gap-1 mt-4">
                 {[...Array(7)].map((_, i) => (
                   <div
@@ -95,6 +107,34 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mt-14">
+
+          <FeatureCard
+            icon={<BookOpen className="w-8 h-8 text-blue-600" />}
+            title="Skill Assessment"
+            desc="Take an AI-powered skill test"
+          />
+
+          <FeatureCard
+            icon={<Brain className="w-8 h-8 text-blue-600" />}
+            title="Learning Roadmap"
+            desc="View your personalized path"
+          />
+
+          <FeatureCard
+            icon={<TrendingUp className="w-8 h-8 text-blue-600" />}
+            title="Progress Tracker"
+            desc="Track your growth metrics"
+          />
+
+          <FeatureCard
+            icon={<Users className="w-8 h-8 text-blue-600" />}
+            title="Community"
+            desc="Connect with developers"
+          />
+
+        </div>
       </main>
     </div>
   );
@@ -122,5 +162,30 @@ function GoalCard({ title, progress }) {
       </div>
       <p className="text-sm text-gray-500 mt-1">{progress}% complete</p>
     </div>
+  );
+}
+
+function FeatureCard({ icon, title, desc }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 
+                 hover:shadow-lg transition cursor-pointer"
+    >
+      <div className="flex items-center gap-4 mb-4">
+        <div className="p-3 rounded-xl flex items-center justify-center">
+          {icon}
+        </div>
+        <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
+      </div>
+
+      <p className="text-gray-600 text-sm">{desc}</p>
+
+      <button className="mt-4 text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-1">
+        Get Started →
+      </button>
+    </motion.div>
   );
 }

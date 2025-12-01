@@ -30,11 +30,16 @@ export default function Navbar() {
           >
             Dashboard
           </Link>
-          <Link href="#">Assessment</Link>
-          <Link href="#">Roadmap</Link>
-          <Link href="#">Progress</Link>
-          <Link href="#">Community</Link>
-          <Link href="#">Profile</Link>
+          <Link href="/roadmap"
+          className="font-semibold hover:text-blue-700 transition">Roadmap</Link>
+          <Link href="#"
+          className="font-semibold hover:text-blue-700 transition">Goals</Link>
+          <Link href="#"
+          className="font-semibold hover:text-blue-700 transition">Progress</Link>
+          <Link href="#"
+          className="font-semibold hover:text-blue-700 transition">Community</Link>
+          <Link href="#"
+          className="font-semibold hover:text-blue-700 transition">Profile</Link>
           <button
             onClick={() => {
               localStorage.removeItem("token");
