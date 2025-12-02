@@ -17,8 +17,8 @@ const app = express();
 
 app.use(cors({
   origin: "*",
-  methods: ["GET", "POST", "DELETE", "OPTIONS"],
-  allowedHeaders: ["*"]
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Accept", "Origin"]
 }));
 
 app.use(bodyParser.json());
