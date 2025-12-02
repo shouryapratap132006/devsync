@@ -30,6 +30,7 @@ export default function LoginPage() {
 
     try {
       const res = await api.post("/auth/login", form);
+      console.log(api)
       login(res.data.token);
       router.push("/dashboard");
     } catch (err) {

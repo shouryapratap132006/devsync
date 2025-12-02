@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useTheme } from "../context/ThemeContext";
 import { Brain, LayoutDashboard, Map, Target, TrendingUp, Users, User, LogOut, Sun, Moon } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { motion } from "framer-motion";
 
 export default function Navbar() {
   const { isAuthenticated, logout } = useAuth();
