@@ -38,9 +38,9 @@ export default function TaskItem({ task, onToggle, onDelete }) {
                     </h4>
 
                     {task.deadline && (
-                        <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
-                            <TbClock size={14} />
-                            {new Date(task.deadline).toLocaleDateString()}
+                        <div className="flex items-center gap-1 text-sm text-gray-800 mt-1">
+                            <TbClock size={14} className="text-gray-600" />
+                            <span className="text-sm text-gray-800">{new Date(task.deadline).toLocaleDateString()}</span>
                         </div>
                     )}
                 </div>

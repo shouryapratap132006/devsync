@@ -20,6 +20,9 @@ export default function GoalsPage() {
     const [goals, setGoals] = useState([]);
     const [tasks, setTasks] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
+    const [currentPageGoals, setCurrentPageGoals] = useState(1);
+    const [currentPageTasks, setCurrentPageTasks] = useState(1);
+    const [pageSize] = useState(6);
 
     // Form States
     const [showGoalModal, setShowGoalModal] = useState(false);
@@ -214,6 +217,22 @@ export default function GoalsPage() {
         t.title.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    // Pagination helpers (client-side)
+    const totalGoalPages = Math.max(1, Math.ceil(filteredGoals.length / pageSize));
+    const totalTaskPages = Math.max(1, Math.ceil(filteredTasks.length / pageSize));
+
+    // Ensure current page is within bounds when filters change
+    useEffect(() => {
+        if (currentPageGoals > totalGoalPages) setCurrentPageGoals(1);
+    }, [filteredGoals.length, totalGoalPages]);
+
+    useEffect(() => {
+        if (currentPageTasks > totalTaskPages) setCurrentPageTasks(1);
+    }, [filteredTasks.length, totalTaskPages]);
+
+    const paginatedGoals = filteredGoals.slice((currentPageGoals - 1) * pageSize, currentPageGoals * pageSize);
+    const paginatedTasks = filteredTasks.slice((currentPageTasks - 1) * pageSize, currentPageTasks * pageSize);
+
     return (
         <div className="flex min-h-screen bg-[#f8f9fc]">
             {/* Sidebar Navigation */}
@@ -278,15 +297,15 @@ export default function GoalsPage() {
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-3 w-full md:w-auto">
-                        <div className="relative flex-1 md:w-64">
-                            <TbSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                            <input
+                    <div className="flex items-center gap-3 w-full md:w-auto min-w-0">
+                        <div className="relative flex-1 md:w-64 min-w-0 z-20">
+                                <TbSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 z-40 pointer-events-none" />
+                                <input
                                 type="text"
                                 placeholder="Search..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all relative z-30  text-gray-900"
                             />
                         </div>
                         <button
@@ -316,7 +335,7 @@ export default function GoalsPage() {
                                 exit={{ opacity: 0, y: -10 }}
                                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                             >
-                                {filteredGoals.map((goal) => (
+                                {paginatedGoals.map((goal) => (
                                     <GoalCard
                                         key={goal._id}
                                         goal={goal}
@@ -329,6 +348,26 @@ export default function GoalsPage() {
                                         No goals found. Start by adding one!
                                     </div>
                                 )}
+                                {/* Pagination controls for goals */}
+                                {totalGoalPages > 1 && (
+                                    <div className="col-span-full flex items-center justify-center mt-4">
+                                        <button
+                                            onClick={() => setCurrentPageGoals((p) => Math.max(1, p - 1))}
+                                            className="px-3 py-1 bg-gray-100 rounded-l-md border border-r-0"
+                                        >
+                                            Prev
+                                        </button>
+                                        <div className="px-4 py-1 border-t border-b">
+                                            Page {currentPageGoals} / {totalGoalPages}
+                                        </div>
+                                        <button
+                                            onClick={() => setCurrentPageGoals((p) => Math.min(totalGoalPages, p + 1))}
+                                            className="px-3 py-1 bg-gray-100 rounded-r-md border border-l-0"
+                                        >
+                                            Next
+                                        </button>
+                                    </div>
+                                )}
                             </motion.div>
                         ) : (
                             <motion.div
@@ -338,7 +377,7 @@ export default function GoalsPage() {
                                 exit={{ opacity: 0, y: -10 }}
                                 className="max-w-3xl mx-auto"
                             >
-                                {filteredTasks.map((task) => (
+                                {paginatedTasks.map((task) => (
                                     <TaskItem
                                         key={task._id}
                                         task={task}
@@ -351,6 +390,26 @@ export default function GoalsPage() {
                                         No tasks found. Time to get productive!
                                     </div>
                                 )}
+                                {/* Pagination controls for tasks */}
+                                {totalTaskPages > 1 && (
+                                    <div className="mt-6 flex justify-center items-center gap-3">
+                                        <button
+                                            onClick={() => setCurrentPageTasks((p) => Math.max(1, p - 1))}
+                                            className="px-3 py-1 bg-gray-100 rounded-l-md border border-r-0"
+                                        >
+                                            Prev
+                                        </button>
+                                        <div className="px-4 py-1 border-t border-b">
+                                            Page {currentPageTasks} / {totalTaskPages}
+                                        </div>
+                                        <button
+                                            onClick={() => setCurrentPageTasks((p) => Math.min(totalTaskPages, p + 1))}
+                                            className="px-3 py-1 bg-gray-100 rounded-r-md border border-l-0"
+                                        >
+                                            Next
+                                        </button>
+                                    </div>
+                                )}
                             </motion.div>
                         )}
                     </AnimatePresence>
@@ -358,13 +417,14 @@ export default function GoalsPage() {
             </main>
 
             {/* Goal Modal */}
-            {showGoalModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                {showGoalModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-auto">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl"
+                        className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl overflow-visible mx-4 my-8"
                     >
+                        <div className="max-h-[90vh] overflow-auto">
                         <h3 className="text-xl font-bold text-gray-900 mb-4">
                             {editingGoal ? "Edit Goal" : "New Goal"}
                         </h3>
@@ -373,7 +433,7 @@ export default function GoalsPage() {
                                 placeholder="Goal Title"
                                 value={newGoal.title}
                                 onChange={(e) => setNewGoal({ ...newGoal, title: e.target.value })}
-                                className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500/20 outline-none"
+                                className="w-full border rounded-lg px-4 py-2.5 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500/20 outline-none placeholder-gray-500"
                             />
                             <textarea
                                 placeholder="Description"
@@ -381,7 +441,7 @@ export default function GoalsPage() {
                                 onChange={(e) =>
                                     setNewGoal({ ...newGoal, description: e.target.value })
                                 }
-                                className="w-full border rounded-lg px-4 py-2.5 h-24 focus:ring-2 focus:ring-blue-500/20 outline-none resize-none"
+                                className="w-full border rounded-lg px-4 py-2.5 h-24 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500/20 outline-none resize-none placeholder-gray-500"
                             />
                             <div className="grid grid-cols-2 gap-4">
                                 <select
@@ -389,7 +449,7 @@ export default function GoalsPage() {
                                     onChange={(e) =>
                                         setNewGoal({ ...newGoal, priority: e.target.value })
                                     }
-                                    className="w-full border rounded-lg px-4 py-2.5 bg-white"
+                                    className="w-full border rounded-lg px-4 py-2.5 bg-white relative z-50  text-gray-900"
                                 >
                                     <option value="High">High Priority</option>
                                     <option value="Medium">Medium Priority</option>
@@ -401,7 +461,7 @@ export default function GoalsPage() {
                                     onChange={(e) =>
                                         setNewGoal({ ...newGoal, deadline: e.target.value })
                                     }
-                                    className="w-full border rounded-lg px-4 py-2.5"
+                                    className="w-full border rounded-lg px-4 py-2.5 bg-white text-gray-900"
                                 />
                             </div>
 
@@ -426,7 +486,7 @@ export default function GoalsPage() {
                                         onChange={(e) =>
                                             setNewGoal({ ...newGoal, status: e.target.value })
                                         }
-                                        className="w-full border rounded-lg px-4 py-2.5 bg-white mt-2"
+                                        className="w-full border rounded-lg px-4 py-2.5 bg-white mt-2 relative z-50"
                                     >
                                         <option value="Not Started">Not Started</option>
                                         <option value="In Progress">In Progress</option>
@@ -449,31 +509,33 @@ export default function GoalsPage() {
                                 Save Goal
                             </button>
                         </div>
+                        </div>
                     </motion.div>
                 </div>
             )}
 
             {/* Task Modal */}
-            {showTaskModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                {showTaskModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-auto">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl"
+                        className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl overflow-visible mx-4 my-8"
                     >
+                        <div className="max-h-[85vh] overflow-auto">
                         <h3 className="text-xl font-bold text-gray-900 mb-4">New Task</h3>
                         <div className="space-y-4">
                             <input
                                 placeholder="Task Title"
                                 value={newTask.title}
                                 onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                                className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500/20 outline-none"
+                                className="w-full border rounded-lg px-4 py-2.5 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500/20 outline-none placeholder-gray-500"
                             />
                             <select
-                                value={newTask.goalId}
-                                onChange={(e) => setNewTask({ ...newTask, goalId: e.target.value })}
-                                className="w-full border rounded-lg px-4 py-2.5 bg-white"
-                            >
+                                    value={newTask.goalId}
+                                    onChange={(e) => setNewTask({ ...newTask, goalId: e.target.value })}
+                                    className="w-full border rounded-lg px-4 py-2.5 bg-white text-gray-900 relative z-50"
+                                >
                                 <option value="">Link to Goal (Optional)</option>
                                 {goals.map((g) => (
                                     <option key={g._id} value={g._id}>
@@ -487,7 +549,7 @@ export default function GoalsPage() {
                                     onChange={(e) =>
                                         setNewTask({ ...newTask, priority: e.target.value })
                                     }
-                                    className="w-full border rounded-lg px-4 py-2.5 bg-white"
+                                    className="w-full border rounded-lg px-4 py-2.5 bg-white text-gray-900"
                                 >
                                     <option value="High">High Priority</option>
                                     <option value="Medium">Medium Priority</option>
@@ -499,7 +561,7 @@ export default function GoalsPage() {
                                     onChange={(e) =>
                                         setNewTask({ ...newTask, deadline: e.target.value })
                                     }
-                                    className="w-full border rounded-lg px-4 py-2.5"
+                                    className="w-full border rounded-lg px-4 py-2.5 bg-white text-gray-900 placeholder-gray-500"
                                 />
                             </div>
                         </div>
@@ -516,6 +578,7 @@ export default function GoalsPage() {
                             >
                                 Add Task
                             </button>
+                        </div>
                         </div>
                     </motion.div>
                 </div>

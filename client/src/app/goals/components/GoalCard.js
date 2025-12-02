@@ -4,9 +4,9 @@ import { TbTrash, TbEdit, TbCalendar } from "react-icons/tb";
 
 export default function GoalCard({ goal, onEdit, onDelete }) {
     const priorityColors = {
-        High: "bg-red-100 text-red-700 border-red-300",
-        Medium: "bg-yellow-100 text-yellow-700 border-yellow-300",
-        Low: "bg-green-100 text-green-700 border-green-300",
+        High: "bg-red-100 text-red-800 border-red-300",
+        Medium: "bg-yellow-100 text-yellow-800 border-yellow-300",
+        Low: "bg-green-100 text-green-800 border-green-300",
     };
 
     const statusColors = {
@@ -76,10 +76,12 @@ export default function GoalCard({ goal, onEdit, onDelete }) {
             {/* Bottom Info */}
             <div className="flex justify-between items-center text-sm text-gray-600 pt-4 border-t border-gray-200">
                 <div className="flex items-center gap-2">
-                    <TbCalendar size={16} className="text-gray-500" />
-                    {goal.deadline
-                        ? new Date(goal.deadline).toLocaleDateString()
-                        : "No Deadline"}
+                    <TbCalendar size={16} className="text-gray-600" />
+                    <span className="text-sm text-gray-800">
+                        {goal.deadline
+                            ? new Date(goal.deadline).toLocaleDateString()
+                            : "No Deadline"}
+                    </span>
                 </div>
 
                 <span
