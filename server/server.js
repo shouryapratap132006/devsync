@@ -10,6 +10,7 @@ import goalRoutes from "./routes/goals.js";
 import taskRoutes from "./routes/tasks.js";
 import dashboardRoutes from "./routes/dashboard.js";
 import communityRoutes from "./routes/community.js";
+import profileRoutes from "./routes/profile.js";
 
 dotenv.config();
 const app = express();
@@ -28,6 +29,7 @@ app.use("/api/goals", goalRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/community", communityRoutes);
+app.use("/api/profile", profileRoutes);
 
 mongoose
   .connect(process.env.DATABASE_URL, {

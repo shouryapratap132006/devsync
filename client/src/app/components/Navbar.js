@@ -38,7 +38,7 @@ export default function Navbar() {
             className="font-semibold hover:text-blue-700 transition">Progress</Link>
           <Link href="/community"
             className="font-semibold hover:text-blue-700 transition">Community</Link>
-          <Link href="#"
+          <Link href="/profile"
             className="font-semibold hover:text-blue-700 transition">Profile</Link>
           <button
             onClick={() => {
