@@ -23,6 +23,10 @@ export default function GoalsPage() {
     const [currentPageGoals, setCurrentPageGoals] = useState(1);
     const [currentPageTasks, setCurrentPageTasks] = useState(1);
     const [pageSize] = useState(6);
+    const [showFilters, setShowFilters] = useState(false);
+    const [statusFilter, setStatusFilter] = useState("All");
+    const [priorityFilter, setPriorityFilter] = useState("All");
+    const [categoryFilter, setCategoryFilter] = useState("All");
 
     // Form States
     const [showGoalModal, setShowGoalModal] = useState(false);
@@ -210,9 +214,17 @@ export default function GoalsPage() {
     }
 
     // Filtered Data
-    const filteredGoals = goals.filter((g) =>
-        g.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredGoals = goals.filter((g) => {
+        // Search
+        if (!g.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+        // Status
+        if (statusFilter !== "All" && g.status !== statusFilter) return false;
+        // Priority
+        if (priorityFilter !== "All" && g.priority !== priorityFilter) return false;
+        // Category
+        if (categoryFilter !== "All" && g.category !== categoryFilter) return false;
+        return true;
+    });
     const filteredTasks = tasks.filter((t) =>
         t.title.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -317,8 +329,54 @@ export default function GoalsPage() {
                             <TbPlus size={20} />
                             Add {activeTab === "goals" ? "Goal" : "Task"}
                         </button>
+                        <button
+                            onClick={() => setShowFilters((s) => !s)}
+                            title="Toggle filters"
+                            className="ml-2 hidden md:inline-flex items-center gap-2 bg-white text-gray-700 px-3 py-2 rounded-xl border border-gray-200 hover:bg-gray-50"
+                        >
+                            <TbFilter /> Filters
+                        </button>
                     </div>
                 </header>
+
+                {/* Filters bar (toggleable) */}
+                {showFilters && (
+                    <div className="mb-6 bg-white border border-gray-100 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center gap-4">
+                        <div className="flex items-center gap-3">
+                            <label className="text-sm text-gray-600">Status</label>
+                            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-2 border rounded-md bg-white text-sm text-gray-900">
+                                <option value="All">All</option>
+                                <option value="Not Started">Not Started</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                            <label className="text-sm text-gray-600">Priority</label>
+                            <select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)} className="px-3 py-2 border rounded-md bg-white text-sm text-gray-900">
+                                <option value="All">All</option>
+                                <option value="High">High</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Low">Low</option>
+                            </select>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                            <label className="text-sm text-gray-600">Category</label>
+                            <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="px-3 py-2 border rounded-md bg-white text-sm text-gray-900">
+                                <option value="All">All</option>
+                                {Array.from(new Set(goals.map((g) => g.category))).map((cat) => (
+                                    <option key={cat} value={cat}>{cat}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="ml-auto self-stretch md:self-auto flex items-center gap-2">
+                            <button onClick={() => { setStatusFilter("All"); setPriorityFilter("All"); setCategoryFilter("All"); }} className="px-3 py-2 bg-white border border-gray-200 rounded-md text-sm text-gray-700 hover:bg-gray-50">Clear</button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Content */}
                 {loading ? (

@@ -17,6 +17,7 @@ export default function CommunityPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [posts, setPosts] = useState([]);
+    const [sortBy, setSortBy] = useState("date");
     const [leaderboard, setLeaderboard] = useState([]);
     const [newPostContent, setNewPostContent] = useState("");
     const [activeCategory, setActiveCategory] = useState("All");
@@ -154,7 +155,7 @@ export default function CommunityPage() {
                                     value={newPostContent}
                                     onChange={(e) => setNewPostContent(e.target.value)}
                                     placeholder="Share your progress or ask a question..."
-                                    className="w-full bg-gray-50 border-0 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/20 outline-none resize-none h-24"
+                                    className="w-full bg-gray-50 border-0 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/20 outline-none resize-none h-24 text-gray-600"
                                 />
                                 <div className="flex justify-between items-center mt-3">
                                     <span className="text-xs text-gray-400">
@@ -174,9 +175,38 @@ export default function CommunityPage() {
 
                     {/* Posts Feed */}
                     <div className="space-y-6">
-                        {posts.map((post) => (
-                            <PostCard key={post._id} post={post} onLike={handleLike} />
-                        ))}
+                        <div className="flex items-center justify-between">
+                            <div className="text-sm text-gray-600">Showing <span className="font-medium text-gray-900">{posts.length}</span> posts</div>
+                            <div className="flex items-center gap-3">
+                                <label className="text-xs text-gray-500">Sort:</label>
+                                <select
+                                    value={sortBy}
+                                    onChange={(e) => setSortBy(e.target.value)}
+                                    className="text-sm bg-white border rounded-md px-2 py-1 text-gray-700"
+                                >
+                                    <option value="date">Date (Newest)</option>
+                                    <option value="popularity">Popularity (Likes)</option>
+                                    <option value="engagement">Engagement (Likes + Comments)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Sort posts client-side before rendering */}
+                        {(() => {
+                            const sorted = posts.slice();
+                            if (sortBy === "date") {
+                                sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                            } else if (sortBy === "popularity") {
+                                sorted.sort((a, b) => (b.likes?.length || 0) - (a.likes?.length || 0));
+                            } else if (sortBy === "engagement") {
+                                const engagement = (p) => (p.likes?.length || 0) + (p.comments?.length || 0);
+                                sorted.sort((a, b) => engagement(b) - engagement(a));
+                            }
+                            return sorted.map((post) => (
+                                <PostCard key={post._id} post={post} onLike={handleLike} />
+                            ));
+                        })()}
+                        
                         {posts.length === 0 && (
                             <div className="text-center py-10 text-gray-500">
                                 No posts yet. Be the first to share!
@@ -208,11 +238,11 @@ export default function CommunityPage() {
                                             {index + 1}
                                         </span>
                                         <div className="flex items-center gap-2">
-                                            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
-                                                <TbUserCircle size={20} />
+                                            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 font-bold">
+                                                {user.name ? user.name.substring(0, 1).toUpperCase() : user._id.substring(0, 1).toUpperCase()}
                                             </div>
                                             <span className="text-sm font-medium text-gray-900">
-                                                User {user._id.substring(0, 4)}
+                                                {user.name || `User ${user._id.substring(0, 4)}`}
                                             </span>
                                         </div>
                                     </div>
@@ -256,11 +286,11 @@ function PostCard({ post, onLike }) {
             <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold">
-                        {post.userId.substring(0, 1).toUpperCase()}
+                        {post.authorName ? post.authorName.substring(0, 1).toUpperCase() : post.userId.substring(0, 1).toUpperCase()}
                     </div>
                     <div>
                         <h4 className="font-semibold text-gray-900 text-sm">
-                            User {post.userId.substring(0, 6)}
+                            {post.authorName || `User ${post.userId.substring(0, 6)}`}
                         </h4>
                         <p className="text-xs text-gray-500">
                             {format(new Date(post.createdAt), "MMM d, h:mm a")} •{" "}

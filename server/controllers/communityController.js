@@ -11,7 +11,30 @@ export const getPosts = async (req, res) => {
         if (tag) query.tags = tag;
 
         const posts = await Post.find(query).sort({ createdAt: -1 }).limit(50);
-        res.json(posts);
+
+        // Fetch user names for posts and comments
+        const userIds = new Set();
+        posts.forEach(p => {
+            userIds.add(p.userId);
+            (p.comments || []).forEach(c => userIds.add(c.userId));
+            (p.likes || []).forEach(l => userIds.add(l));
+        });
+
+        const users = await User.find({ _id: { $in: Array.from(userIds) } }).select('name');
+        const userMap = {};
+        users.forEach(u => { userMap[u._id] = u.name; });
+
+        // Attach authorName and commenter names
+        const enriched = posts.map(p => ({
+            ...p.toObject(),
+            authorName: userMap[p.userId] || `User ${String(p.userId).substring(0,6)}`,
+            comments: (p.comments || []).map(c => ({
+                ...c.toObject(),
+                authorName: userMap[c.userId] || `User ${String(c.userId).substring(0,6)}`
+            }))
+        }));
+
+        res.json(enriched);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -87,25 +110,26 @@ export const addComment = async (req, res) => {
     }
 };
 
-// GET Leaderboard (Mocked for now, or simple aggregation)
 export const getLeaderboard = async (req, res) => {
     try {
-        // In a real app, we'd aggregate posts/likes/tasks.
-        // For now, let's just return some dummy data or simple counts if possible.
-        // We'll try to get top posters.
-
         const topPosters = await Post.aggregate([
             { $group: { _id: "$userId", count: { $sum: 1 } } },
             { $sort: { count: -1 } },
             { $limit: 5 }
         ]);
 
-        // We need to fetch user details (names) for these IDs. 
-        // Assuming we don't have a robust User profile system yet, we might send back IDs.
-        // Or if User model exists, populate it.
+        const userIds = topPosters.map(p => p._id);
+        const users = await User.find({ _id: { $in: userIds } }).select('name');
+        const userMap = {};
+        users.forEach(u => { userMap[u._id] = u.name; });
 
-        // Let's just return the aggregation for now.
-        res.json(topPosters);
+        const enriched = topPosters.map(p => ({
+            _id: p._id,
+            name: userMap[p._id] || `User ${String(p._id).substring(0,6)}`,
+            count: p.count
+        }));
+
+        res.json(enriched);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
