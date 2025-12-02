@@ -5,12 +5,20 @@ import User from "../models/User.js"; // Assuming User model exists for leaderbo
 // GET all posts (with pagination & filtering)
 export const getPosts = async (req, res) => {
     try {
-        const { category, tag } = req.query;
+        const { category, tag, page = 1, limit = 10 } = req.query;
         const query = {};
         if (category && category !== "All") query.category = category;
         if (tag) query.tags = tag;
 
-        const posts = await Post.find(query).sort({ createdAt: -1 }).limit(50);
+        const pageNum = parseInt(page);
+        const limitNum = parseInt(limit);
+        const skip = (pageNum - 1) * limitNum;
+
+        const totalPosts = await Post.countDocuments(query);
+        const posts = await Post.find(query)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limitNum);
 
         // Fetch user names for posts and comments
         const userIds = new Set();
@@ -27,14 +35,19 @@ export const getPosts = async (req, res) => {
         // Attach authorName and commenter names
         const enriched = posts.map(p => ({
             ...p.toObject(),
-            authorName: userMap[p.userId] || `User ${String(p.userId).substring(0,6)}`,
+            authorName: userMap[p.userId] || `User ${String(p.userId).substring(0, 6)}`,
             comments: (p.comments || []).map(c => ({
                 ...c.toObject(),
-                authorName: userMap[c.userId] || `User ${String(c.userId).substring(0,6)}`
+                authorName: userMap[c.userId] || `User ${String(c.userId).substring(0, 6)}`
             }))
         }));
 
-        res.json(enriched);
+        res.json({
+            posts: enriched,
+            currentPage: pageNum,
+            totalPages: Math.ceil(totalPosts / limitNum),
+            totalPosts
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -115,10 +128,10 @@ export const addComment = async (req, res) => {
 
         const enriched = {
             ...post.toObject(),
-            authorName: userMap[post.userId] || `User ${String(post.userId).substring(0,6)}`,
+            authorName: userMap[post.userId] || `User ${String(post.userId).substring(0, 6)}`,
             comments: (post.comments || []).map(c => ({
                 ...c.toObject(),
-                authorName: userMap[c.userId] || `User ${String(c.userId).substring(0,6)}`
+                authorName: userMap[c.userId] || `User ${String(c.userId).substring(0, 6)}`
             }))
         };
 
@@ -143,7 +156,7 @@ export const getLeaderboard = async (req, res) => {
 
         const enriched = topPosters.map(p => ({
             _id: p._id,
-            name: userMap[p._id] || `User ${String(p._id).substring(0,6)}`,
+            name: userMap[p._id] || `User ${String(p._id).substring(0, 6)}`,
             count: p.count
         }));
 

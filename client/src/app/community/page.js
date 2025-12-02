@@ -24,6 +24,8 @@ export default function CommunityPage() {
     const [leaderboard, setLeaderboard] = useState([]);
     const [newPostContent, setNewPostContent] = useState("");
     const [activeCategory, setActiveCategory] = useState("All");
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
     const categories = [
         "All",
@@ -35,8 +37,12 @@ export default function CommunityPage() {
     ];
 
     useEffect(() => {
-        fetchData();
+        setPage(1); // Reset page when category changes
     }, [activeCategory]);
+
+    useEffect(() => {
+        fetchData();
+    }, [activeCategory, page]);
 
     async function fetchData() {
         const token = localStorage.getItem("token");
@@ -46,7 +52,7 @@ export default function CommunityPage() {
         }
 
         try {
-            const query = activeCategory !== "All" ? `?category=${activeCategory}` : "";
+            const query = `?page=${page}&limit=10${activeCategory !== "All" ? `&category=${activeCategory}` : ""}`;
             const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
             const [postsRes, leaderboardRes] = await Promise.all([
                 fetch(`${base}/api/community/posts${query}`, {
@@ -57,7 +63,11 @@ export default function CommunityPage() {
                 }),
             ]);
 
-            if (postsRes.ok) setPosts(await postsRes.json());
+            if (postsRes.ok) {
+                const data = await postsRes.json();
+                setPosts(data.posts);
+                setTotalPages(data.totalPages);
+            }
             if (leaderboardRes.ok) setLeaderboard(await leaderboardRes.json());
         } catch (err) {
             console.error(err);
@@ -246,6 +256,29 @@ export default function CommunityPage() {
                             </div>
                         )}
                     </div>
+
+                    {/* Pagination Controls */}
+                    {totalPages > 1 && (
+                        <div className="flex justify-center items-center gap-4 mt-8">
+                            <button
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                                className="px-4 py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                            >
+                                Previous
+                            </button>
+                            <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                                Page {page} of {totalPages}
+                            </span>
+                            <button
+                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                disabled={page === totalPages}
+                                className="px-4 py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    )}
                 </main>
 
                 {/* Right Sidebar: Leaderboard & Trending */}
