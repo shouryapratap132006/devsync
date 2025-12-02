@@ -353,16 +353,16 @@ export default function GoalsPage() {
                                     <div className="col-span-full flex items-center justify-center mt-4">
                                         <button
                                             onClick={() => setCurrentPageGoals((p) => Math.max(1, p - 1))}
-                                            className="px-3 py-1 bg-gray-100 rounded-l-md border border-r-0"
+                                            className="px-4 py-2 bg-white text-gray-700 rounded-l-md border border-gray-300 hover:bg-gray-50 shadow-sm"
                                         >
                                             Prev
                                         </button>
-                                        <div className="px-4 py-1 border-t border-b">
+                                        <div className="px-6 py-2 bg-white text-gray-800 border-t border-b border-gray-300 font-medium shadow-sm">
                                             Page {currentPageGoals} / {totalGoalPages}
                                         </div>
                                         <button
                                             onClick={() => setCurrentPageGoals((p) => Math.min(totalGoalPages, p + 1))}
-                                            className="px-3 py-1 bg-gray-100 rounded-r-md border border-l-0"
+                                            className="px-4 py-2 bg-white text-gray-700 rounded-r-md border border-gray-300 hover:bg-gray-50 shadow-sm"
                                         >
                                             Next
                                         </button>
@@ -395,16 +395,16 @@ export default function GoalsPage() {
                                     <div className="mt-6 flex justify-center items-center gap-3">
                                         <button
                                             onClick={() => setCurrentPageTasks((p) => Math.max(1, p - 1))}
-                                            className="px-3 py-1 bg-gray-100 rounded-l-md border border-r-0"
+                                            className="px-4 py-2 bg-white text-gray-700 rounded-l-md border border-gray-300 hover:bg-gray-50 shadow-sm"
                                         >
                                             Prev
                                         </button>
-                                        <div className="px-4 py-1 border-t border-b">
+                                        <div className="px-6 py-2 bg-white text-gray-800 border-t border-b border-gray-300 font-medium shadow-sm">
                                             Page {currentPageTasks} / {totalTaskPages}
                                         </div>
                                         <button
                                             onClick={() => setCurrentPageTasks((p) => Math.min(totalTaskPages, p + 1))}
-                                            className="px-3 py-1 bg-gray-100 rounded-r-md border border-l-0"
+                                            className="px-4 py-2 bg-white text-gray-700 rounded-r-md border border-gray-300 hover:bg-gray-50 shadow-sm"
                                         >
                                             Next
                                         </button>
@@ -486,7 +486,7 @@ export default function GoalsPage() {
                                         onChange={(e) =>
                                             setNewGoal({ ...newGoal, status: e.target.value })
                                         }
-                                        className="w-full border rounded-lg px-4 py-2.5 bg-white mt-2 relative z-50"
+                                        className="w-full border rounded-lg px-4 py-2.5 bg-white mt-2 relative z-50 text-black"
                                     >
                                         <option value="Not Started">Not Started</option>
                                         <option value="In Progress">In Progress</option>
