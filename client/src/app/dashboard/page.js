@@ -11,7 +11,8 @@ import {
   Calendar,
   CheckCircle2,
   Clock,
-  Quote
+  Quote,
+  ArrowRight
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
@@ -35,13 +36,10 @@ export default function Dashboard() {
     }
 
     try {
-      // Fetch Dashboard Stats
       const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
       const statsRes = await fetch(`${base}/api/dashboard/stats`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      // Fetch User Profile for Name
       const profileRes = await fetch(`${base}/api/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -61,7 +59,7 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -72,144 +70,168 @@ export default function Dashboard() {
   const { counts, activeGoals, nextTask, quote, activities } = data;
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 pb-32 transition-colors duration-300">
       <main className="max-w-7xl mx-auto px-6 py-10">
 
-        <div className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-          <div>
-            <h2 className="text-3xl font-bold mb-2 flex items-center gap-2">
-              Welcome back, {user.name.split(" ")[0]}! <span>👋</span>
-            </h2>
-            <p className="text-gray-600 text-lg">
-              "{quote}"
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <Link href="/goals" className="bg-white text-gray-700 px-4 py-2 rounded-lg font-medium border border-gray-200 hover:bg-gray-50 transition shadow-sm">
-              View Goals
-            </Link>
-            <Link href="/roadmap" className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition shadow-md">
-              New Roadmap
-            </Link>
+        {/* 👋 Welcome Section */}
+        <div className="mb-10 p-8 rounded-3xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                Welcome back, {user.name.split(" ")[0]}!
+              </h1>
+              <p className="text-blue-100 text-lg max-w-2xl italic opacity-90">
+                "{quote}"
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Link href="/goals" className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-white/20 transition-all">
+                View Goals
+              </Link>
+              <Link href="/roadmap" className="bg-white text-blue-600 px-5 py-2.5 rounded-xl font-bold hover:bg-blue-50 transition-all shadow-lg">
+                + New Roadmap
+              </Link>
+            </div>
           </div>
         </div>
 
-        {/* Stats Grid */}
+        {/* 📊 Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
           <StatCard
-            icon={<TrendingUp className="text-orange-500 w-6 h-6" />}
+            icon={<TrendingUp className="text-orange-600 w-6 h-6" />}
             title="Day Streak"
             value={`${counts.streak} days`}
-            color="bg-orange-50"
+            bg="bg-orange-50"
+            border="border-orange-100"
           />
           <StatCard
             icon={<Target className="text-blue-600 w-6 h-6" />}
-            title="Goals Active"
-            value={`${counts.totalGoals - counts.completedGoals}/${counts.totalGoals}`}
-            color="bg-blue-50"
+            title="Active Goals"
+            value={`${counts.totalGoals - counts.completedGoals}`}
+            subValue={`/ ${counts.totalGoals} Total`}
+            bg="bg-blue-50"
+            border="border-blue-100"
           />
           <StatCard
             icon={<BookOpen className="text-purple-600 w-6 h-6" />}
             title="Skills Tracked"
             value={counts.skillsCount}
-            color="bg-purple-50"
+            bg="bg-purple-50"
+            border="border-purple-100"
           />
           <StatCard
             icon={<Users className="text-green-600 w-6 h-6" />}
-            title="Community Posts"
+            title="Community"
             value={counts.communityPosts}
-            color="bg-green-50"
+            subValue="Posts"
+            bg="bg-green-50"
+            border="border-green-100"
           />
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-3 gap-8">
 
           {/* Main Content Column */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="md:col-span-2 space-y-8"
+            className="lg:col-span-2 space-y-8"
           >
-            {/* Active Goals */}
-            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+            {/* 🎯 Active Goals */}
+            <div className="card-premium p-6">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-semibold flex items-center gap-2">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <Target className="w-5 h-5 text-blue-600" /> Active Goals
                 </h3>
-                <Link href="/goals" className="text-blue-600 text-sm font-medium hover:underline">
-                  View All
+                <Link href="/goals" className="text-blue-600 text-sm font-medium hover:underline flex items-center gap-1">
+                  View All <ArrowRight size={14} />
                 </Link>
               </div>
 
               {activeGoals.length > 0 ? (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {activeGoals.map(goal => (
                     <GoalCard key={goal._id} goal={goal} />
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <p>No active goals. Time to set one!</p>
-                  <Link href="/goals" className="text-blue-600 font-medium mt-2 inline-block">
-                    + Create Goal
+                <div className="text-center py-12 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+                  <p className="text-slate-500 dark:text-slate-400 mb-2">No active goals yet.</p>
+                  <Link href="/goals" className="text-blue-600 font-bold hover:underline">
+                    Create your first goal
                   </Link>
                 </div>
               )}
             </div>
 
-            {/* Next Task Widget */}
-            {nextTask && (
-              <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl shadow-md p-6 text-white relative overflow-hidden">
-                <div className="relative z-10">
-                  <div className="flex items-center gap-2 mb-2 opacity-90">
-                    <Clock className="w-4 h-4" />
-                    <span className="text-sm font-medium uppercase tracking-wider">Up Next</span>
+            {/* ⚡ Next Task Widget */}
+            {nextTask ? (
+              <div className="relative overflow-hidden rounded-2xl bg-slate-900 dark:bg-slate-950 text-white p-8 shadow-lg border border-slate-800 dark:border-slate-800">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl -mr-16 -mt-16"></div>
+
+                <div className="relative z-10 flex justify-between items-center">
+                  <div>
+                    <div className="flex items-center gap-2 mb-3 text-blue-300">
+                      <Clock className="w-4 h-4" />
+                      <span className="text-xs font-bold uppercase tracking-wider">Up Next</span>
+                    </div>
+                    <h3 className="text-2xl font-bold mb-2">{nextTask.title}</h3>
+                    <p className="text-slate-400 mb-6">
+                      Due: {format(new Date(nextTask.deadline), "EEEE, MMM d, h:mm a")}
+                    </p>
+                    <Link href="/goals" className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-500 transition-all inline-flex items-center gap-2">
+                      <CheckCircle2 size={16} /> Mark Complete
+                    </Link>
                   </div>
-                  <h3 className="text-2xl font-bold mb-2">{nextTask.title}</h3>
-                  <p className="opacity-90 mb-4">
-                    Due: {format(new Date(nextTask.deadline), "EEEE, MMM d, h:mm a")}
-                  </p>
-                  <Link href="/goals" className="bg-white text-indigo-600 px-4 py-2 rounded-lg font-bold text-sm hover:bg-opacity-90 transition inline-block">
-                    Mark Complete
-                  </Link>
+                  <div className="hidden sm:block opacity-20">
+                    <CheckCircle2 size={120} />
+                  </div>
                 </div>
-                <div className="absolute right-0 bottom-0 opacity-10 transform translate-x-1/4 translate-y-1/4">
-                  <CheckCircle2 size={200} />
-                </div>
+              </div>
+            ) : (
+              <div className="p-8 rounded-2xl bg-gradient-to-r from-slate-100 to-white dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 text-center">
+                <p className="text-slate-500 dark:text-slate-400">No upcoming tasks. You're all caught up! 🎉</p>
               </div>
             )}
           </motion.div>
 
           {/* Sidebar Column */}
-          <div className="space-y-6">
+          <div className="space-y-8">
 
-            {/* Recent Activity */}
-            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-              <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Clock className="w-5 h-5 text-gray-500" /> Recent Activity
+            {/* 🕒 Recent Activity */}
+            <div className="card-premium p-6">
+              <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-slate-500" /> Recent Activity
               </h4>
-              <div className="space-y-4">
+              <div className="space-y-6 relative">
+                {/* Vertical Line */}
+                <div className="absolute left-[11px] top-2 bottom-2 w-[2px] bg-slate-100 dark:bg-slate-700"></div>
+
                 {activities.slice(0, 5).map((activity) => (
-                  <div key={activity._id} className="flex gap-3 items-start">
-                    <div className="mt-1 w-2 h-2 rounded-full bg-blue-500 flex-shrink-0"></div>
+                  <div key={activity._id} className="relative pl-8">
+                    <div className="absolute left-0 top-1.5 w-6 h-6 rounded-full bg-white dark:bg-slate-800 border-2 border-blue-100 dark:border-blue-900 flex items-center justify-center z-10">
+                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                    </div>
                     <div>
-                      <p className="text-sm text-gray-800">{activity.description}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">
+                      <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{activity.description}</p>
+                      <p className="text-xs text-slate-400 mt-1">
                         {format(new Date(activity.createdAt), "MMM d, h:mm a")}
                       </p>
                     </div>
                   </div>
                 ))}
                 {activities.length === 0 && (
-                  <p className="text-gray-500 text-sm">No recent activity.</p>
+                  <p className="text-slate-500 text-sm pl-8">No recent activity.</p>
                 )}
               </div>
             </div>
 
-            {/* Quick Links */}
-            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-              <h4 className="text-lg font-semibold mb-4">Quick Access</h4>
+            {/* 🔗 Quick Links */}
+            <div className="card-premium p-6">
+              <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Quick Access</h4>
               <div className="space-y-2">
                 <QuickLink
                   href="/progress"
@@ -236,29 +258,38 @@ export default function Dashboard() {
   );
 }
 
-function StatCard({ icon, title, value, color }) {
+function StatCard({ icon, title, value, subValue, bg, border }) {
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center hover:shadow-md transition">
-      <div className={`p-3 rounded-xl mb-3 ${color}`}>{icon}</div>
-      <p className="text-gray-500 text-sm font-medium">{title}</p>
-      <p className="text-gray-900 text-2xl font-bold mt-1">{value}</p>
+    <div className={`p-6 rounded-2xl border ${border} ${bg} dark:bg-slate-800 dark:border-slate-700 hover:shadow-md transition-all duration-300`}>
+      <div className="flex items-center gap-3 mb-3">
+        <div className="p-2 bg-white dark:bg-slate-700 rounded-lg shadow-sm">
+          {icon}
+        </div>
+        <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">{title}</span>
+      </div>
+      <div>
+        <span className="text-3xl font-bold text-slate-900 dark:text-white">{value}</span>
+        {subValue && <span className="text-sm text-slate-500 dark:text-slate-400 ml-1 font-medium">{subValue}</span>}
+      </div>
     </div>
   );
 }
 
 function GoalCard({ goal }) {
   return (
-    <div>
-      <div className="flex justify-between items-end mb-2">
+    <div className="group p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md transition-all duration-200">
+      <div className="flex justify-between items-end mb-3">
         <div>
-          <p className="font-semibold text-gray-900">{goal.title}</p>
-          <p className="text-xs text-gray-500">{goal.category}</p>
+          <h5 className="font-bold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 transition-colors">{goal.title}</h5>
+          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 mt-1 inline-block">
+            {goal.category}
+          </span>
         </div>
-        <span className="text-sm font-medium text-blue-600">{goal.progress}%</span>
+        <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{goal.progress}%</span>
       </div>
-      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+      <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
         <div
-          className="h-2 bg-blue-600 rounded-full transition-all duration-500"
+          className="h-full bg-blue-600 rounded-full transition-all duration-500"
           style={{ width: `${goal.progress}%` }}
         ></div>
       </div>
@@ -268,9 +299,10 @@ function GoalCard({ goal }) {
 
 function QuickLink({ href, icon, label }) {
   return (
-    <Link href={href} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 text-gray-700 transition">
-      <span className="text-gray-400">{icon}</span>
-      <span className="font-medium">{label}</span>
+    <Link href={href} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors group">
+      <span className="text-slate-400 dark:text-slate-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{icon}</span>
+      <span className="font-medium group-hover:text-slate-900 dark:group-hover:text-white transition-colors">{label}</span>
+      <ArrowRight className="ml-auto w-4 h-4 text-slate-300 group-hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-all" />
     </Link>
   );
 }

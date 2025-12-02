@@ -2,17 +2,19 @@
 import { useState, useEffect } from "react";
 import api from "../../../lib/axios";
 import { useRouter } from "next/navigation";
-import { Brain, Mail, Lock } from "lucide-react";
+import { TbBrain, TbMail, TbLock, TbLoader2 } from "react-icons/tb";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
+import { useAuth } from "../../context/AuthContext";
+
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 🔒 Redirect if already logged in
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) router.replace("/dashboard");
@@ -28,7 +30,7 @@ export default function LoginPage() {
 
     try {
       const res = await api.post("/auth/login", form);
-      localStorage.setItem("token", res.data.token);
+      login(res.data.token);
       router.push("/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
@@ -38,21 +40,25 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex bg-[#0A0F1F] relative overflow-hidden">
+    <div className="min-h-screen w-full flex bg-slate-50 dark:bg-slate-900 relative overflow-hidden transition-colors duration-300">
 
-      {/* LEFT SECTION */}
-      <div className="w-[55%] flex flex-col justify-center pl-28 pr-10 text-white relative">
+      {/* Background Elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full bg-blue-100/50 blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-indigo-100/50 blur-[100px] pointer-events-none" />
+
+      {/* LEFT SECTION (Hero) */}
+      <div className="hidden lg:flex w-[55%] flex-col justify-center pl-28 pr-10 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="flex items-center gap-4 mb-16"
+          className="flex items-center gap-4 mb-12"
         >
-          <div className="bg-white/10 p-4 rounded-xl backdrop-blur-md">
-            <Brain className="w-12 h-12 text-blue-400" />
+          <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-lg shadow-blue-500/10">
+            <TbBrain className="w-10 h-10 text-blue-600" />
           </div>
-          <h1 className="text-5xl font-extrabold tracking-tight">
-            Dev<span className="text-blue-500">Sync</span>
+          <h1 className="text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
+            Dev<span className="text-blue-600">Sync</span>
           </h1>
         </motion.div>
 
@@ -60,96 +66,89 @@ export default function LoginPage() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-6xl font-bold leading-tight"
+          className="text-6xl font-bold leading-tight text-slate-900 dark:text-white mb-8"
         >
-          Welcome Back to <br /> Your AI Partner
+          Welcome Back to <br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+            Your AI Partner
+          </span>
         </motion.h2>
 
         <motion.p
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="mt-10 text-gray-300 text-xl w-[85%] leading-relaxed"
+          className="text-xl text-slate-600 dark:text-slate-300 w-[85%] leading-relaxed"
         >
-          Sign in to access personalized developer insights and AI-guided learning paths.
+          Sign in to access personalized developer insights, track your progress, and accelerate your career growth.
         </motion.p>
       </div>
 
-      {/* RIGHT SECTION */}
+      {/* RIGHT SECTION (Form) */}
       <motion.div
-        initial={{ opacity: 0, x: 40 }}
+        initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6 }}
-        className="w-[45%] flex items-center justify-center p-12"
+        className="w-full lg:w-[45%] flex items-center justify-center p-6 lg:p-12 relative z-10"
       >
-        <div className="w-full max-w-xl bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-14 shadow-2xl">
+        <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl p-10 shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50 border border-slate-100 dark:border-slate-700">
 
-          <h2 className="text-4xl font-bold text-white text-center mb-4">
-            Welcome Back!
-          </h2>
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Welcome Back!</h2>
+            <p className="text-slate-500 dark:text-slate-400">Enter your details to continue.</p>
+          </div>
 
-          <p className="text-gray-400 text-center mb-10 text-lg">
-            Continue your journey with DevSync
-          </p>
-
-          <form onSubmit={handleSubmit} className="space-y-7">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="text-gray-300 text-sm font-medium">Email</label>
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Email Address</label>
               <div className="relative">
-                <Mail className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
+                <TbMail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl" />
                 <input
                   type="email"
                   name="email"
                   placeholder="you@example.com"
                   onChange={handleChange}
                   required
-                  className="w-full mt-2 px-12 py-4 bg-white/10 border border-white/20 rounded-lg text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-medium"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-gray-300 text-sm font-medium">Password</label>
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Password</label>
               <div className="relative">
-                <Lock className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
+                <TbLock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl" />
                 <input
                   type="password"
                   name="password"
-                  placeholder="Enter your password"
+                  placeholder="••••••••"
                   onChange={handleChange}
                   required
-                  className="w-full mt-2 px-12 py-4 bg-white/10 border border-white/20 rounded-lg text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-medium"
                 />
               </div>
             </div>
 
-            {error && <p className="text-red-400 text-center text-sm">{error}</p>}
+            {error && (
+              <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm text-center font-medium border border-red-100 dark:border-red-900/30">
+                {error}
+              </div>
+            )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold text-lg shadow-lg hover:opacity-90 transition disabled:opacity-50"
+              className="w-full py-3.5 rounded-xl bg-blue-600 text-white font-bold text-lg shadow-lg shadow-blue-500/30 hover:bg-blue-700 hover:shadow-blue-500/40 active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {loading ? "Signing in..." : "Sign In"}
+              {loading ? <TbLoader2 className="animate-spin" /> : "Sign In"}
             </button>
           </form>
 
-          <p className="text-gray-400 text-center mt-8 text-sm">
-            Do not have an account?{" "}
-            <Link href="/auth/signup" className="text-blue-400 hover:underline">
+          <p className="text-slate-500 dark:text-slate-400 text-center mt-8 text-sm">
+            Don't have an account?{" "}
+            <Link href="/auth/signup" className="text-blue-600 font-bold hover:underline">
               Sign Up
             </Link>
-          </p>
-
-          <p className="text-center mt-8 text-gray-400 text-xs">
-            By continuing, you agree to DevSync's{" "}
-            <Link href="/terms" className="text-blue-400 hover:underline">
-              Terms of Service
-            </Link>{" "}
-            and{" "}
-            <Link href="/privacy" className="text-blue-400 hover:underline">
-              Privacy Policy
-            </Link>.
           </p>
         </div>
       </motion.div>

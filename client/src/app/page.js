@@ -1,201 +1,210 @@
 "use client";
+import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import Navbar from "./components/Navbar";
-
-// React Icons - Keep as you asked
 import {
   TbBrain,
   TbTargetArrow,
   TbChartLine,
   TbUsers,
-  TbCode,
-  TbSparkles,
   TbRocket,
-  TbBadge,
+  TbCheck,
+  TbArrowRight
 } from "react-icons/tb";
 import Footer from "./components/Footer";
 
+// Animation Variants
+const fadeInUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2
+    }
+  }
+};
+
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-white to-blue-50">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 overflow-x-hidden transition-colors duration-300">
 
-      {/* 🌅 Hero Section */}
-      <main
-        className="flex-1 flex flex-col items-center justify-center text-center px-6 md:px-20 py-16 relative overflow-hidden"
-        style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1500&q=80')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px]" />
+      {/* 🌟 HERO SECTION */}
+      <section className="relative pt-24 pb-16 lg:pt-32 lg:pb-20 overflow-hidden">
+        {/* Background Elements */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
+          <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-blue-400/20 blur-[100px]" />
+          <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full bg-indigo-400/20 blur-[120px]" />
+        </div>
 
-        <div className="relative z-10">
+        <div className="max-w-7xl mx-auto px-6 text-center">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="mb-4"
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+            className="max-w-4xl mx-auto"
           >
-            <span className="text-sm md:text-base font-semibold text-blue-700 bg-blue-100 px-4 py-1 rounded-full shadow-sm">
-              # AI-Powered Career Growth
-            </span>
+            <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 text-blue-700 dark:text-blue-300 font-medium text-sm mb-8">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+              </span>
+              AI-Powered Career Growth for Developers
+            </motion.div>
+
+            <motion.h1 variants={fadeInUp} className="text-5xl md:text-7xl font-bold text-slate-900 dark:text-white tracking-tight mb-8 leading-[1.1]">
+              Build Your Dream <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+                Developer Career
+              </span>
+            </motion.h1>
+
+            <motion.p variants={fadeInUp} className="text-xl text-slate-600 dark:text-slate-300 mb-10 max-w-2xl mx-auto leading-relaxed">
+              Stop guessing what to learn next. Get a personalized roadmap, AI mentorship, and real-time progress tracking to land your next role.
+            </motion.p>
+
+            <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link href="/auth/signup" className="btn-primary text-lg px-8 py-4 shadow-lg shadow-blue-500/20 flex items-center gap-2 group">
+                Start Your Journey
+                <TbArrowRight className="group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <Link href="/auth/login" className="px-8 py-4 rounded-xl font-medium text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
+                Log In
+              </Link>
+            </motion.div>
           </motion.div>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-4xl md:text-6xl font-extrabold text-gray-900 leading-tight mb-6"
-          >
-            Your Personal <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-cyan-600">
-              Career Growth Partner
-            </span>
-          </motion.h1>
+          
+        </div>
+      </section>
 
-          <motion.p
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1 }}
-            className="text-gray-700 max-w-xl mx-auto mb-10 md:text-lg"
-          >
-            Build your dream developer career with personalized learning
-            paths, AI mentorship, and real progress tracking — all in one platform.
-          </motion.p>
+      {/* ⚡ FEATURES GRID */}
+      <section className="py-24 bg-white dark:bg-slate-900">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">Everything you need to grow</h2>
+            <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto text-lg">
+              DevSync combines advanced AI with proven learning methodologies to accelerate your growth.
+            </p>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2 }}
-            className="flex flex-wrap gap-4 justify-center"
-          >
-            <Link
-              href="auth/signup"
-              className="bg-blue-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-blue-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
-            >
-              Start Your Journey →
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <FeatureCard
+              icon={<TbBrain className="text-4xl text-blue-600" />}
+              title="AI Assessment"
+              desc="Our AI analyzes your current skills and identifies gaps to create a perfectly tailored learning plan."
+            />
+            <FeatureCard
+              icon={<TbTargetArrow className="text-4xl text-indigo-600" />}
+              title="Custom Roadmaps"
+              desc="Get a step-by-step curriculum with curated resources, projects, and milestones."
+            />
+            <FeatureCard
+              icon={<TbChartLine className="text-4xl text-cyan-600" />}
+              title="Progress Tracking"
+              desc="Visualize your growth with detailed analytics, streaks, and achievement badges."
+            />
+            <FeatureCard
+              icon={<TbUsers className="text-4xl text-purple-600" />}
+              title="Community"
+              desc="Connect with other developers, share your wins, and get help when you're stuck."
+            />
+            <FeatureCard
+              icon={<TbRocket className="text-4xl text-orange-600" />}
+              title="Career Goals"
+              desc="Set specific career objectives and let DevSync guide you to achieve them."
+            />
+            <FeatureCard
+              icon={<TbCheck className="text-4xl text-green-600" />}
+              title="Daily Tasks"
+              desc="Stay consistent with auto-generated daily tasks that keep you moving forward."
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* 💬 TESTIMONIALS */}
+      <section className="py-24 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+        <div className="max-w-7xl mx-auto px-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-16 text-center">Loved by Developers</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <TestimonialCard
+              quote="DevSync helped me structure my learning. The roadmap guided me to land my first React role in just 3 months."
+              author="Aisha Khan"
+              role="Frontend Engineer"
+              initial="A"
+            />
+            <TestimonialCard
+              quote="The AI assessment highlighted gaps I didn't know I had. I improved fast with daily tasks and the community support."
+              author="Rahul Verma"
+              role="Backend Developer"
+              initial="R"
+            />
+            <TestimonialCard
+              quote="Finally, a tool that actually understands what I need to learn. The progress tracking keeps me motivated every day."
+              author="Sarah Jenkins"
+              role="Full Stack Dev"
+              initial="S"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* 🚀 CTA SECTION */}
+      <section className="py-24 bg-white dark:bg-slate-900">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-12 md:p-20 text-center text-white shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -ml-16 -mb-16"></div>
+
+            <h2 className="text-3xl md:text-5xl font-bold mb-6 relative z-10">Ready to level up?</h2>
+            <p className="text-blue-100 text-lg md:text-xl mb-10 max-w-2xl mx-auto relative z-10">
+              Join thousands of developers who are fast-tracking their careers with DevSync.
+            </p>
+            <Link href="/auth/signup" className="inline-block bg-white text-blue-600 px-10 py-4 rounded-xl font-bold text-lg hover:bg-blue-50 hover:shadow-lg transition-all relative z-10">
+              Get Started for Free
             </Link>
-            <button className="border-2 border-blue-600 bg-white/80 text-blue-700 px-8 py-3 rounded-xl font-semibold hover:bg-blue-50 hover:shadow-md transition-all duration-200">
-              Watch Demo
-            </button>
-          </motion.div>
-        </div>
-      </main>
-
-      {/* 💡 Info Section */}
-      <section className="px-6 md:px-20 py-16 bg-white shadow-inner rounded-t-3xl text-center">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
-          Everything you need to grow as a developer
-        </h2>
-        <p className="text-gray-600 max-w-2xl mx-auto leading-relaxed">
-          DevSync combines AI mentoring, roadmap generation, skill analytics,
-          and a vibrant developer community — guiding you every step of your growth journey.
-        </p>
-      </section>
-
-      {/* 🚀 FEATURE CARDS */}
-      <section className="px-6 md:px-20 py-16 bg-gradient-to-b from-blue-50 to-white text-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-          Accelerate Your Growth
-        </h2>
-        <p className="text-gray-600 max-w-xl mx-auto mb-12">
-          Everything you need to level up your developer career
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {[
-            {
-              title: "AI-Powered Assessment",
-              desc: "Get personalized skill evaluations powered by advanced AI.",
-              icon: <TbBrain className="text-blue-600 text-6xl mb-5" />,
-            },
-            {
-              title: "Custom Roadmaps",
-              desc: "Receive tailored learning paths based on your goals.",
-              icon: <TbTargetArrow className="text-blue-600 text-6xl mb-5" />,
-            },
-            {
-              title: "Track Progress",
-              desc: "Visualize your growth with detailed analytics.",
-              icon: <TbChartLine className="text-blue-600 text-6xl mb-5" />,
-            },
-            {
-              title: "Community Support",
-              desc: "Connect with mentors and fellow developers.",
-              icon: <TbUsers className="text-blue-600 text-6xl mb-5" />,
-            },
-          ].map((item, i) => (
-            <div
-              key={i}
-              className="p-8 bg-white rounded-2xl shadow-md hover:shadow-lg transition-all border border-blue-100 flex flex-col items-center"
-            >
-              {item.icon}
-              <h3 className="font-semibold text-xl text-gray-900 mb-2">
-                {item.title}
-              </h3>
-              <p className="text-gray-600 text-sm">{item.desc}</p>
-            </div>
-          ))}
+          </div>
         </div>
       </section>
 
-      {/* 🔄 HOW IT WORKS */}
-      <section className="px-6 md:px-20 py-20 bg-white text-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-          How It Works
-        </h2>
-        <p className="text-gray-600 max-w-xl mx-auto mb-16">
-          Four simple steps to career growth
-        </p>
+      <Footer />
+    </div>
+  );
+}
 
-        <div className="flex flex-col md:flex-row items-center justify-between gap-10">
+function FeatureCard({ icon, title, desc }) {
+  return (
+    <div className="p-8 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+      <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-700 rounded-xl inline-block group-hover:bg-blue-50 dark:group-hover:bg-blue-900/30 transition-colors">
+        {icon}
+      </div>
+      <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">{title}</h3>
+      <p className="text-slate-600 dark:text-slate-400 leading-relaxed">{desc}</p>
+    </div>
+  );
+}
 
-          {[
-            { step: "Step 1", title: "Complete skill assessment", icon: <TbCode className="text-blue-600 text-6xl mb-4" /> },
-            { step: "Step 2", title: "AI generates your roadmap", icon: <TbSparkles className="text-blue-600 text-6xl mb-4" /> },
-            { step: "Step 3", title: "Learn and grow daily", icon: <TbRocket className="text-blue-600 text-6xl mb-4" /> },
-            { step: "Step 4", title: "Achieve your career goals", icon: <TbBadge className="text-blue-600 text-6xl mb-4" /> },
-          ].map((item, i, arr) => (
-            <div key={i} className="flex flex-col items-center relative">
-
-              {item.icon}
-              <p className="text-blue-600 font-medium mb-1">{item.step}</p>
-              <p className="text-gray-800 font-semibold">{item.title}</p>
-
-              {/* Arrow (show except for last item) */}
-              {i < arr.length - 1 && (
-                <div className="hidden md:block absolute right-[-70px] top-[40%] text-gray-400 text-4xl">
-                  →
-                </div>
-              )}
-            </div>
-          ))}
-
+function TestimonialCard({ quote, author, role, initial }) {
+  return (
+    <div className="p-8 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
+      <div className="flex gap-1 text-yellow-400 mb-4">
+        {[1, 2, 3, 4, 5].map(i => <span key={i}>★</span>)}
+      </div>
+      <p className="text-slate-700 dark:text-slate-300 mb-6 text-lg leading-relaxed">"{quote}"</p>
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold text-lg">
+          {initial}
         </div>
-      </section>
-
-      {/* 🌟 CTA BOX */}
-      <section className="px-6 md:px-20 pb-20" >
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-500 text-white p-10 rounded-3xl shadow-xl text-center mt-20">
-          <h2 className="text-3xl font-bold mb-3">Ready to Transform Your Career?</h2>
-          <p className="mb-6 opacity-90">
-            Join thousands of developers already growing with DevSync.
-          </p>
-
-          <Link
-            href="/auth/signup"
-            className="bg-white text-blue-700 px-8 py-3 rounded-xl font-semibold hover:bg-blue-50 transition-all"
-          >
-            Start Your Journey →
-          </Link>
+        <div>
+          <div className="font-bold text-slate-900 dark:text-white">{author}</div>
+          <div className="text-sm text-slate-500 dark:text-slate-400">{role}</div>
         </div>
-      </section>
-
-      {/* ⚙️ Footer */}
-      <Footer/>
+      </div>
     </div>
   );
 }

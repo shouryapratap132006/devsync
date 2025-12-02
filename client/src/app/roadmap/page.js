@@ -1,8 +1,19 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { TbLoader2 } from "react-icons/tb";
+import {
+  TbLoader2,
+  TbPlus,
+  TbTrash,
+  TbMap,
+  TbCalendar,
+  TbTarget,
+  TbSchool,
+  TbClock,
+  TbChevronRight,
+  TbCheck
+} from "react-icons/tb";
 
 export default function RoadmapPage() {
   const defaultSkills = ["HTML", "CSS", "JavaScript", "React", "Node.js", "DSA", "Git", "Python", "SQL", "Express"];
@@ -27,48 +38,31 @@ export default function RoadmapPage() {
   const [error, setError] = useState(null);
   const router = useRouter();
 
-  // Backend URL
   const backendURL = process.env.NEXT_PUBLIC_API_URL
     ? `${process.env.NEXT_PUBLIC_API_URL}/api/roadmaps`
     : "http://localhost:8080/api/roadmaps";
 
-  // Safe fetch wrapper
   async function safeFetch(url, options = {}) {
-    let res;
-
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/auth/login");
+      return null;
+    }
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
+      const res = await fetch(url, {
+        ...options,
+        headers: { ...options.headers, Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      });
+      if (res.status === 401) {
+        localStorage.removeItem("token");
         router.push("/auth/login");
-        throw new Error("No auth token found");
+        return null;
       }
-
-      const headers = {
-        ...options.headers,
-        "Authorization": `Bearer ${token}`
-      };
-
-      res = await fetch(url, { ...options, headers });
+      return res;
     } catch (err) {
-      console.error("Network error:", err);
-      throw new Error("Network request failed");
+      console.error(err);
+      return null;
     }
-
-    const text = await res.text();
-
-    let data;
-    try {
-      data = text ? JSON.parse(text) : null;
-    } catch {
-      console.error("Invalid JSON:", text);
-      throw new Error("Invalid JSON returned by server");
-    }
-
-    if (!res.ok) {
-      throw new Error(data?.error || res.statusText || "Request failed");
-    }
-
-    return data;
   }
 
   useEffect(() => {
@@ -77,16 +71,11 @@ export default function RoadmapPage() {
 
   async function fetchRoadmaps() {
     setLoading(true);
-    setError(null);
-    try {
-      const data = await safeFetch(backendURL);
-      setRoadmaps(data);
-    } catch (err) {
-      console.error(err);
-      setError("Could not load roadmaps");
-    } finally {
-      setLoading(false);
+    const res = await safeFetch(backendURL);
+    if (res && res.ok) {
+      setRoadmaps(await res.json());
     }
+    setLoading(false);
   }
 
   function toggleSkill(skill, type) {
@@ -106,13 +95,14 @@ export default function RoadmapPage() {
     if (type === "known") {
       setSkills((prev) => [...prev, text]);
       setCustomSkill("");
+      setSelectedSkills(prev => [...prev, text]);
     } else {
       setLearnList((prev) => [...prev, text]);
       setCustomLearn("");
+      setSelectedLearn(prev => [...prev, text]);
     }
   }
 
-  // when entering editing mode for an existing roadmap, prefill form fields
   useEffect(() => {
     if (editingMode && activeRoadmap) {
       setSelectedSkills(activeRoadmap.skills || []);
@@ -124,348 +114,296 @@ export default function RoadmapPage() {
     }
   }, [editingMode, activeRoadmap]);
 
-  // Make sure this function is declared as async
   async function createRoadmap() {
-    // Show popup warning if required fields are missing
     if (!selectedSkills.length || !selectedLearn.length || !level || !goal || !time) {
-      alert("⚠ Please fill all required fields (skills, goal, level, time).");
+      alert("⚠ Please fill all required fields.");
       return;
     }
 
-    const payload = {
-      skills: selectedSkills,
-      wantToLearn: selectedLearn,
-      level,
-      goal,
-      time,
-      extraDetails,
-    };
+    setCreating(true);
+    const payload = { skills: selectedSkills, wantToLearn: selectedLearn, level, goal, time, extraDetails };
 
-    try {
-      const roadmap = await safeFetch(backendURL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      setRoadmaps((prev) => [roadmap, ...prev]);
+    const res = await safeFetch(backendURL, { method: "POST", body: JSON.stringify(payload) });
+    if (res && res.ok) {
+      const roadmap = await res.json();
+      setRoadmaps([roadmap, ...roadmaps]);
       setActiveRoadmap(roadmap);
       setEditingMode(false);
-    } catch (err) {
-      console.error(err);
-      alert(err.message || "Failed to create roadmap");
+    } else {
+      alert("Failed to create roadmap.");
     }
+    setCreating(false);
   }
-
-  async function loadRoadmap(id) {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await safeFetch(`${backendURL}/${id}`);
-      setActiveRoadmap(data);
-      setEditingMode(false);
-    } catch (err) {
-      console.error(err);
-      setError("Could not load roadmap");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  // Clear assessment form when a roadmap is opened (unless user is in editingMode)
-  useEffect(() => {
-    if (activeRoadmap && !editingMode) {
-      setSelectedSkills([]);
-      setSelectedLearn([]);
-      setLevel("");
-      setGoal("");
-      setTime("");
-      setExtraDetails("");
-      setCustomSkill("");
-      setCustomLearn("");
-    }
-  }, [activeRoadmap, editingMode]);
 
   async function deleteRoadmap(id) {
     if (!confirm("Delete this roadmap?")) return;
-    setError(null);
-    try {
-      await safeFetch(`${backendURL}/${id}`, { method: "DELETE" });
-      setRoadmaps((prev) => prev.filter((r) => r._id !== id));
-      if (activeRoadmap && activeRoadmap._id === id) setActiveRoadmap(null);
-    } catch (err) {
-      console.error(err);
-      setError("Could not delete roadmap");
+    const res = await safeFetch(`${backendURL}/${id}`, { method: "DELETE" });
+    if (res && res.ok) {
+      setRoadmaps(roadmaps.filter((r) => r._id !== id));
+      if (activeRoadmap?._id === id) setActiveRoadmap(null);
     }
   }
 
   return (
-    <div className="flex w-full min-h-screen bg-[#eef1f5]">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
       {/* Sidebar */}
-      <aside className="w-72 bg-white border-r shadow p-6 hidden md:block sticky top-0 h-screen overflow-auto">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Your Roadmaps</h2>
+      <aside className="w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 hidden lg:flex flex-col fixed h-full pt-24 pb-6 px-6 z-10">
+        <div className="mb-8">
+          <button
+            onClick={() => {
+              setActiveRoadmap(null);
+              setEditingMode(true);
+            }}
+            className="btn-primary w-full flex items-center justify-center gap-2 shadow-blue-500/20"
+          >
+            <TbPlus size={20} /> New Roadmap
+          </button>
+        </div>
 
-        <button
-          onClick={() => {
-            setActiveRoadmap(null);
-            setEditingMode(true);
-            window.scrollTo({ top: 0, behavior: "smooth" });
-          }}
-          className="w-full mb-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow"
-        >
-          + New Roadmap
-        </button>
-
-        <div className="flex flex-col gap-3">
-          {loading && <div className="text-gray-700 font-medium">Loading...</div>}
-
-          {roadmaps.map((r) => (
-            <div
-              key={r._id}
-              className="p-3 rounded-xl border hover:bg-gray-100 cursor-pointer flex justify-between items-start"
-              onClick={() => loadRoadmap(r._id)}
-            >
-              <div>
-                <div className="font-semibold text-gray-900">
-                  {r.goal || "Untitled"}
+        <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Your Roadmaps</h3>
+          {loading ? (
+            <div className="flex justify-center py-4"><TbLoader2 className="animate-spin text-blue-600" /></div>
+          ) : roadmaps.length > 0 ? (
+            roadmaps.map((r) => (
+              <div
+                key={r._id}
+                onClick={() => { setActiveRoadmap(r); setEditingMode(false); }}
+                className={`group p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${activeRoadmap?._id === r._id
+                  ? "bg-blue-50 dark:bg-slate-800 border-blue-500 shadow-md ring-1 ring-blue-500/20"
+                  : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md hover:bg-slate-50 dark:hover:bg-slate-700"
+                  }`}
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className={`font-bold text-sm line-clamp-1 ${activeRoadmap?._id === r._id ? "text-blue-800 dark:text-blue-300" : "text-slate-900 dark:text-slate-100"}`}>
+                    {r.goal}
+                  </h4>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); deleteRoadmap(r._id); }}
+                    className={`transition-colors opacity-0 group-hover:opacity-100 ${activeRoadmap?._id === r._id ? "text-blue-400 hover:text-red-600" : "text-slate-400 hover:text-red-600"}`}
+                  >
+                    <TbTrash size={16} />
+                  </button>
                 </div>
-                <div className="text-sm text-gray-600 mt-1">
-                  {new Date(r.createdAt).toLocaleString()}
+                <div className={`flex items-center gap-2 text-xs font-medium ${activeRoadmap?._id === r._id ? "text-blue-600 dark:text-blue-400" : "text-slate-500 dark:text-slate-400"}`}>
+                  <TbCalendar size={12} />
+                  {new Date(r.createdAt).toLocaleDateString()}
                 </div>
               </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  deleteRoadmap(r._id);
-                }}
-                className="text-sm text-red-600"
-              >
-                Delete
-              </button>
+            ))
+          ) : (
+            <div className="text-center py-8 bg-slate-50 dark:bg-slate-800 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+              <p className="text-slate-500 dark:text-slate-400 text-sm">No roadmaps yet.</p>
             </div>
-          ))}
-
-          {!roadmaps.length && !loading && (
-            <div className="text-gray-600">No saved roadmaps yet.</div>
           )}
         </div>
       </aside>
 
-      {/* Main */}
-      <main className="flex-1 p-8">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-6xl mx-auto">
-          <header className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Create / View Roadmap</h1>
-            <p className="text-gray-700 mt-1">
-              Fill the assessment or pick a previous roadmap from the left.
-            </p>
-          </header>
+      {/* Main Content */}
+      <main className="flex-1 lg:ml-80 p-6 md:p-10 pt-24 pb-32 max-w-5xl mx-auto w-full">
+        <AnimatePresence mode="wait">
+          {(!activeRoadmap || editingMode) ? (
+            <motion.div
+              key="form"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-8"
+            >
+              <header>
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Create New Roadmap</h1>
+                <p className="text-slate-500 dark:text-slate-400">Let AI design your perfect learning path.</p>
+              </header>
 
-          {/* Assessment Form - hide when a premade/saved roadmap is selected unless editingMode is active */}
-          {(!activeRoadmap || editingMode) && (
-            <section className="mb-8 bg-white p-6 rounded-xl shadow border border-gray-200">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Skills Known */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Skills You Already Know
-                </h3>
-
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {skills.map((s) => (
-                    <label
-                      key={s}
-                      className="flex items-center gap-2 p-2 border rounded-lg cursor-pointer bg-gray-50"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedSkills.includes(s)}
-                        onChange={() => toggleSkill(s, "known")}
-                        className="w-4 h-4 accent-blue-600"
-                      />
-                      <span className="text-gray-900 text-sm">{s}</span>
-                    </label>
-                  ))}
-                </div>
-
-                <div className="flex gap-2 mt-3">
-                  <input
-                    value={customSkill}
-                    onChange={(e) => setCustomSkill(e.target.value)}
-                    placeholder="Add custom skill"
-                    className="flex-1 border rounded-lg px-3 py-2 placeholder-gray-500 text-gray-900"
-                  />
-                  <button
-                    onClick={() => addCustom(customSkill, "known")}
-                    className="px-4 rounded-lg bg-blue-600 text-white"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-
-              {/* Want to Learn */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Technologies You Want to Learn
-                </h3>
-
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {learnList.map((s) => (
-                    <label
-                      key={s}
-                      className="flex items-center gap-2 p-2 border rounded-lg cursor-pointer bg-gray-50"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedLearn.includes(s)}
-                        onChange={() => toggleSkill(s, "learn")}
-                        className="w-4 h-4 accent-blue-600"
-                      />
-                      <span className="text-gray-900 text-sm">{s}</span>
-                    </label>
-                  ))}
-                </div>
-
-                <div className="flex gap-2 mt-3">
-                  <input
-                    value={customLearn}
-                    onChange={(e) => setCustomLearn(e.target.value)}
-                    placeholder="Add custom tech"
-                    className="flex-1 border rounded-lg px-3 py-2 placeholder-gray-500 text-gray-900"
-                  />
-                  <button
-                    onClick={() => addCustom(customLearn, "learn")}
-                    className="px-4 rounded-lg bg-blue-600 text-white"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Level, Goal, Time */}
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-900 mb-1">
-                  Experience Level
-                </label>
-                <select
-                  value={level}
-                  onChange={(e) => setLevel(e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2 bg-white text-gray-900"
-                >
-                  <option value="">Select your level</option>
-                  <option value="Beginner">Beginner</option>
-                  <option value="Intermediate">Intermediate</option>
-                  <option value="Advanced">Advanced</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-900 mb-1">
-                  Learning Goal
-                </label>
-                <input
-                  value={goal}
-                  onChange={(e) => setGoal(e.target.value)}
-                  placeholder="e.g. Become a Full-Stack Developer"
-                  className="w-full border rounded-lg px-3 py-2 placeholder-gray-500 text-gray-900"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-900 mb-1">
-                  Time Availability
-                </label>
-                <select
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2 bg-white text-gray-900"
-                >
-                  <option value="">Select</option>
-                  <option value="1-2">1–2 hours/day</option>
-                  <option value="3-5">3–5 hours/day</option>
-                  <option value="weekend">Weekends only</option>
-                  <option value="flexible">Flexible</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Extra Details */}
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-900 mb-1">
-                Extra Details
-              </label>
-              <textarea
-                value={extraDetails}
-                onChange={(e) => setExtraDetails(e.target.value)}
-                placeholder="Write anything that helps the AI understand you better"
-                className="w-full border rounded-lg px-3 py-2 h-28 placeholder-gray-500 text-gray-900"
-              />
-            </div>
-
-            <div className="mt-6 flex items-center gap-4">
-              <button
-                onClick={createRoadmap}
-                disabled={creating}
-                className="px-6 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700"
-              >
-                {creating ? (
-                  <div className="flex items-center gap-2">
-                    <TbLoader2 className="animate-spin text-xl" />
-                    <span>Generating...</span>
+              <div className="grid md:grid-cols-2 gap-8">
+                {/* Skills Section */}
+                <div className="card-premium p-6">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                    <TbCheck className="text-green-500" /> Skills You Know
+                  </h3>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {skills.map(s => (
+                      <button
+                        key={s}
+                        onClick={() => toggleSkill(s, "known")}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${selectedSkills.includes(s)
+                          ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800"
+                          : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700"
+                          }`}
+                      >
+                        {s}
+                      </button>
+                    ))}
                   </div>
-                ) : (
-                  "Generate Roadmap"
-                )}
-              </button>
-              {error && <div className="text-red-600 font-medium">{error}</div>}
-              
-            </div>
-            </section>
-          )}
-
-          {/* Roadmap Viewer */}
-          <section className="bg-white p-6 rounded-xl shadow border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Roadmap</h3>
-
-            {activeRoadmap ? (
-              <div>
-                <h4 className="text-xl font-bold text-gray-900 mb-2">
-                  {activeRoadmap.goal || "Personalized Roadmap"}
-                </h4>
-                <div className="text-sm text-gray-700 mb-4">
-                  Created: {new Date(activeRoadmap.createdAt).toLocaleString()}
+                  <div className="flex gap-2">
+                    <input
+                      value={customSkill}
+                      onChange={(e) => setCustomSkill(e.target.value)}
+                      placeholder="Add custom skill..."
+                      className="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:border-blue-500"
+                      onKeyDown={(e) => e.key === 'Enter' && addCustom(customSkill, "known")}
+                    />
+                    <button onClick={() => addCustom(customSkill, "known")} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">
+                      <TbPlus />
+                    </button>
+                  </div>
                 </div>
 
-                <div className="space-y-4">
-                  {activeRoadmap.weeks?.map((week, idx) => (
-                    <div key={idx} className="p-4 border rounded-lg bg-gray-50">
-                      <div className="font-semibold text-gray-900">
-                        Week {idx + 1}
-                      </div>
-                      <div className="text-sm text-gray-800 mt-2">
-                        {week}
-                      </div>
+                {/* Learn Section */}
+                <div className="card-premium p-6">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                    <TbTarget className="text-blue-500" /> Want to Learn
+                  </h3>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {learnList.map(s => (
+                      <button
+                        key={s}
+                        onClick={() => toggleSkill(s, "learn")}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${selectedLearn.includes(s)
+                          ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
+                          : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700"
+                          }`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      value={customLearn}
+                      onChange={(e) => setCustomLearn(e.target.value)}
+                      placeholder="Add custom tech..."
+                      className="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:border-blue-500"
+                      onKeyDown={(e) => e.key === 'Enter' && addCustom(customLearn, "learn")}
+                    />
+                    <button onClick={() => addCustom(customLearn, "learn")} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">
+                      <TbPlus />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Details Section */}
+              <div className="card-premium p-6">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Learning Preferences</h3>
+                <div className="grid md:grid-cols-3 gap-6 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Current Level</label>
+                    <div className="relative">
+                      <TbSchool className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <select
+                        value={level}
+                        onChange={(e) => setLevel(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white outline-none appearance-none focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-blue-500/20"
+                      >
+                        <option value="">Select Level</option>
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Advanced">Advanced</option>
+                      </select>
                     </div>
-                  ))}
-                </div>
-
-                <div className="mt-6">
-                  <h5 className="font-semibold text-gray-900 mb-2">Notes</h5>
-                  <div className="text-sm text-gray-800 whitespace-pre-wrap">
-                    {activeRoadmap.extraDetails}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Main Goal</label>
+                    <div className="relative">
+                      <TbTarget className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        value={goal}
+                        onChange={(e) => setGoal(e.target.value)}
+                        placeholder="e.g. Full Stack Dev"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-blue-500/20 outline-none"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Time Commitment</label>
+                    <div className="relative">
+                      <TbClock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <select
+                        value={time}
+                        onChange={(e) => setTime(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white outline-none appearance-none focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-blue-500/20"
+                      >
+                        <option value="">Select Time</option>
+                        <option value="1-2">1-2 hours/day</option>
+                        <option value="3-5">3-5 hours/day</option>
+                        <option value="weekend">Weekends Only</option>
+                        <option value="flexible">Flexible</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Additional Context (Optional)</label>
+                  <textarea
+                    value={extraDetails}
+                    onChange={(e) => setExtraDetails(e.target.value)}
+                    placeholder="Any specific projects you want to build or learning style preferences?"
+                    className="w-full p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-blue-500/20 outline-none resize-none h-24"
+                  />
+                </div>
               </div>
-            ) : (
-              <div className="text-gray-700">
-                Select an existing roadmap from the left or generate a new one.
+
+              <div className="flex justify-end">
+                <button
+                  onClick={createRoadmap}
+                  disabled={creating}
+                  className="btn-primary px-8 py-3 text-lg shadow-lg shadow-blue-500/20 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {creating ? <TbLoader2 className="animate-spin" /> : <TbMap />}
+                  {creating ? "Generating Strategy..." : "Generate Roadmap"}
+                </button>
               </div>
-            )}
-          </section>
-        </motion.div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="roadmap"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-8"
+            >
+              <header className="flex justify-between items-start">
+                <div>
+                  <div className="flex items-center gap-2 text-blue-600 font-medium mb-2">
+                    <TbMap /> Personal Roadmap
+                  </div>
+                  <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{activeRoadmap.goal}</h1>
+                  <p className="text-slate-500 dark:text-slate-400 mt-1">Generated on {new Date(activeRoadmap.createdAt).toLocaleDateString()}</p>
+                </div>
+                <button onClick={() => setEditingMode(true)} className="text-blue-600 font-medium hover:underline">
+                  Create New
+                </button>
+              </header>
+
+              <div className="grid gap-6">
+                {activeRoadmap.weeks?.map((weekContent, idx) => (
+                  <div key={idx} className="card-premium p-0 overflow-hidden">
+                    <div className="bg-slate-50 dark:bg-slate-800 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3">
+                      <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-sm">
+                        {idx + 1}
+                      </span>
+                      <h3 className="font-bold text-slate-900 dark:text-white">Week {idx + 1}</h3>
+                    </div>
+                    <div className="p-6">
+                      <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">{weekContent}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {activeRoadmap.extraDetails && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6 border border-blue-100 dark:border-blue-800">
+                  <h4 className="font-bold text-blue-900 dark:text-blue-300 mb-2 flex items-center gap-2">
+                    <TbTarget /> AI Notes
+                  </h4>
+                  <p className="text-blue-800 dark:text-blue-200">{activeRoadmap.extraDetails}</p>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
     </div>
   );
