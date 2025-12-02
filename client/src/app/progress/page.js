@@ -40,7 +40,8 @@ export default function ProgressPage() {
         }
 
         try {
-            const res = await fetch("http://localhost:8080/api/dashboard/stats", {
+            const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+            const res = await fetch(`${base}/api/dashboard/stats`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (!res.ok) throw new Error("Failed to fetch data");

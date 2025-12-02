@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../../lib/axios";
 import { useRouter } from "next/navigation";
 import { Brain } from "lucide-react";
 import { motion } from "framer-motion";
@@ -27,7 +27,7 @@ export default function SignupPage() {
     setError("");
 
     try {
-      const res = await axios.post("http://localhost:8080/api/auth/signup", form);
+      const res = await api.post("/auth/signup", form);
       localStorage.setItem("token", res.data.token);
       router.push("/dashboard");
     } catch (err) {

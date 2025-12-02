@@ -44,11 +44,12 @@ export default function CommunityPage() {
 
         try {
             const query = activeCategory !== "All" ? `?category=${activeCategory}` : "";
+            const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
             const [postsRes, leaderboardRes] = await Promise.all([
-                fetch(`http://localhost:8080/api/community/posts${query}`, {
+                fetch(`${base}/api/community/posts${query}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 }),
-                fetch("http://localhost:8080/api/community/leaderboard", {
+                fetch(`${base}/api/community/leaderboard`, {
                     headers: { Authorization: `Bearer ${token}` },
                 }),
             ]);
@@ -67,7 +68,8 @@ export default function CommunityPage() {
         const token = localStorage.getItem("token");
 
         try {
-            const res = await fetch("http://localhost:8080/api/community/posts", {
+            const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+            const res = await fetch(`${base}/api/community/posts`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -92,13 +94,11 @@ export default function CommunityPage() {
     async function handleLike(postId) {
         const token = localStorage.getItem("token");
         try {
-            const res = await fetch(
-                `http://localhost:8080/api/community/posts/${postId}/like`,
-                {
-                    method: "POST",
-                    headers: { Authorization: `Bearer ${token}` },
-                }
-            );
+            const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+            const res = await fetch(`${base}/api/community/posts/${postId}/like`, {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` },
+            });
             if (res.ok) {
                 const updatedPost = await res.json();
                 setPosts(posts.map((p) => (p._id === postId ? updatedPost : p)));
@@ -112,7 +112,8 @@ export default function CommunityPage() {
         if (!text || !text.trim()) return;
         const token = localStorage.getItem("token");
         try {
-            const res = await fetch(`http://localhost:8080/api/community/posts/${postId}/comment`, {
+            const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+            const res = await fetch(`${base}/api/community/posts/${postId}/comment`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

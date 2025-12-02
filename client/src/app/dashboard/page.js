@@ -36,12 +36,13 @@ export default function Dashboard() {
 
     try {
       // Fetch Dashboard Stats
-      const statsRes = await fetch("http://localhost:8080/api/dashboard/stats", {
+      const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const statsRes = await fetch(`${base}/api/dashboard/stats`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       // Fetch User Profile for Name
-      const profileRes = await fetch("http://localhost:8080/api/profile", {
+      const profileRes = await fetch(`${base}/api/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

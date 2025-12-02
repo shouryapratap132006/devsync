@@ -28,7 +28,9 @@ export default function RoadmapPage() {
   const router = useRouter();
 
   // Backend URL
-  const backendURL = "http://localhost:8080/api/roadmaps";
+  const backendURL = process.env.NEXT_PUBLIC_API_URL
+    ? `${process.env.NEXT_PUBLIC_API_URL}/api/roadmaps`
+    : "http://localhost:8080/api/roadmaps";
 
   // Safe fetch wrapper
   async function safeFetch(url, options = {}) {

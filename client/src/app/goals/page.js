@@ -52,7 +52,7 @@ export default function GoalsPage() {
         deadline: "",
     });
 
-    const backendURL = "http://localhost:8080/api";
+    const backendURL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : "http://localhost:8080/api";
 
     // Helper: Safe Fetch with Auth
     async function safeFetch(url, options = {}) {
