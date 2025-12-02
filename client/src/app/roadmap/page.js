@@ -21,6 +21,7 @@ export default function RoadmapPage() {
 
   const [roadmaps, setRoadmaps] = useState([]);
   const [activeRoadmap, setActiveRoadmap] = useState(null);
+  const [editingMode, setEditingMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState(null);
@@ -109,6 +110,18 @@ export default function RoadmapPage() {
     }
   }
 
+  // when entering editing mode for an existing roadmap, prefill form fields
+  useEffect(() => {
+    if (editingMode && activeRoadmap) {
+      setSelectedSkills(activeRoadmap.skills || []);
+      setSelectedLearn(activeRoadmap.wantToLearn || []);
+      setLevel(activeRoadmap.level || "");
+      setGoal(activeRoadmap.goal || "");
+      setTime(activeRoadmap.time || "");
+      setExtraDetails(activeRoadmap.extraDetails || "");
+    }
+  }, [editingMode, activeRoadmap]);
+
   // Make sure this function is declared as async
   async function createRoadmap() {
     // Show popup warning if required fields are missing
@@ -135,6 +148,7 @@ export default function RoadmapPage() {
 
       setRoadmaps((prev) => [roadmap, ...prev]);
       setActiveRoadmap(roadmap);
+      setEditingMode(false);
     } catch (err) {
       console.error(err);
       alert(err.message || "Failed to create roadmap");
@@ -147,6 +161,7 @@ export default function RoadmapPage() {
     try {
       const data = await safeFetch(`${backendURL}/${id}`);
       setActiveRoadmap(data);
+      setEditingMode(false);
     } catch (err) {
       console.error(err);
       setError("Could not load roadmap");
@@ -154,6 +169,20 @@ export default function RoadmapPage() {
       setLoading(false);
     }
   }
+
+  // Clear assessment form when a roadmap is opened (unless user is in editingMode)
+  useEffect(() => {
+    if (activeRoadmap && !editingMode) {
+      setSelectedSkills([]);
+      setSelectedLearn([]);
+      setLevel("");
+      setGoal("");
+      setTime("");
+      setExtraDetails("");
+      setCustomSkill("");
+      setCustomLearn("");
+    }
+  }, [activeRoadmap, editingMode]);
 
   async function deleteRoadmap(id) {
     if (!confirm("Delete this roadmap?")) return;
@@ -177,6 +206,7 @@ export default function RoadmapPage() {
         <button
           onClick={() => {
             setActiveRoadmap(null);
+            setEditingMode(true);
             window.scrollTo({ top: 0, behavior: "smooth" });
           }}
           className="w-full mb-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow"
@@ -229,8 +259,9 @@ export default function RoadmapPage() {
             </p>
           </header>
 
-          {/* Assessment Form */}
-          <section className="mb-8 bg-white p-6 rounded-xl shadow border border-gray-200">
+          {/* Assessment Form - hide when a premade/saved roadmap is selected unless editingMode is active */}
+          {(!activeRoadmap || editingMode) && (
+            <section className="mb-8 bg-white p-6 rounded-xl shadow border border-gray-200">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Skills Known */}
               <div>
@@ -388,8 +419,10 @@ export default function RoadmapPage() {
                 )}
               </button>
               {error && <div className="text-red-600 font-medium">{error}</div>}
+              
             </div>
-          </section>
+            </section>
+          )}
 
           {/* Roadmap Viewer */}
           <section className="bg-white p-6 rounded-xl shadow border border-gray-200">
