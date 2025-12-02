@@ -249,7 +249,7 @@ export default function ProfilePage() {
                                     type="text"
                                     value={editForm.name}
                                     onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500/20"
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 text-gray-900"
                                 />
                             </div>
                             <div>
@@ -257,7 +257,7 @@ export default function ProfilePage() {
                                 <textarea
                                     value={editForm.bio}
                                     onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 resize-none h-24"
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 resize-none h-24 text-gray-900"
                                 />
                             </div>
                             <div>
@@ -266,7 +266,7 @@ export default function ProfilePage() {
                                     type="text"
                                     value={editForm.location}
                                     onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500/20"
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 text-gray-900"
                                 />
                             </div>
                             <div>
@@ -275,7 +275,7 @@ export default function ProfilePage() {
                                     type="text"
                                     value={editForm.skills}
                                     onChange={(e) => setEditForm({ ...editForm, skills: e.target.value })}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500/20"
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 text-gray-900"
                                 />
                             </div>
                             <div>
@@ -284,7 +284,7 @@ export default function ProfilePage() {
                                     type="text"
                                     value={editForm.interests}
                                     onChange={(e) => setEditForm({ ...editForm, interests: e.target.value })}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500/20"
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 text-gray-900"
                                 />
                             </div>
                         </div>
