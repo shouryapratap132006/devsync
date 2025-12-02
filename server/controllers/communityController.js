@@ -104,7 +104,25 @@ export const addComment = async (req, res) => {
         });
 
         await post.save();
-        res.json(post);
+        // Enrich the returned post with author names for frontend convenience
+        const userIds = new Set();
+        userIds.add(post.userId);
+        (post.comments || []).forEach(c => userIds.add(c.userId));
+
+        const users = await User.find({ _id: { $in: Array.from(userIds) } }).select('name');
+        const userMap = {};
+        users.forEach(u => { userMap[u._id] = u.name; });
+
+        const enriched = {
+            ...post.toObject(),
+            authorName: userMap[post.userId] || `User ${String(post.userId).substring(0,6)}`,
+            comments: (post.comments || []).map(c => ({
+                ...c.toObject(),
+                authorName: userMap[c.userId] || `User ${String(c.userId).substring(0,6)}`
+            }))
+        };
+
+        res.json(enriched);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

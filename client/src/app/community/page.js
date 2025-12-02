@@ -108,6 +108,27 @@ export default function CommunityPage() {
         }
     }
 
+    async function handleAddComment(postId, text) {
+        if (!text || !text.trim()) return;
+        const token = localStorage.getItem("token");
+        try {
+            const res = await fetch(`http://localhost:8080/api/community/posts/${postId}/comment`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ text }),
+            });
+            if (res.ok) {
+                const updated = await res.json();
+                setPosts((prev) => prev.map((p) => (p._id === postId ? updated : p)));
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#f8f9fc]">
@@ -203,7 +224,7 @@ export default function CommunityPage() {
                                 sorted.sort((a, b) => engagement(b) - engagement(a));
                             }
                             return sorted.map((post) => (
-                                <PostCard key={post._id} post={post} onLike={handleLike} />
+                                <PostCard key={post._id} post={post} onLike={handleLike} onAddComment={handleAddComment} />
                             ));
                         })()}
                         
@@ -278,8 +299,17 @@ export default function CommunityPage() {
     );
 }
 
-function PostCard({ post, onLike }) {
+function PostCard({ post, onLike, onAddComment }) {
     const isLiked = false; // TODO: Check if current user liked (needs user context)
+    const [showComments, setShowComments] = useState(false);
+    const [commentText, setCommentText] = useState("");
+
+    async function submitComment() {
+        if (!commentText.trim()) return;
+        await onAddComment(post._id, commentText.trim());
+        setCommentText("");
+        setShowComments(true);
+    }
 
     return (
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
@@ -322,11 +352,38 @@ function PostCard({ post, onLike }) {
                     />
                     {post.likes.length}
                 </button>
-                <button className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors">
+                <button onClick={() => setShowComments((s) => !s)} className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors">
                     <TbMessageCircle size={20} />
                     {post.comments.length}
                 </button>
             </div>
+            {showComments && (
+                <div className="mt-4 pt-4 border-t border-gray-50">
+                    <div className="space-y-3">
+                        {(post.comments || []).map((c) => (
+                            <div key={c._id || c.id} className="flex items-start gap-3">
+                                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 font-bold">
+                                    {c.authorName ? c.authorName.substring(0,1).toUpperCase() : String(c.userId).substring(0,1).toUpperCase()}
+                                </div>
+                                <div>
+                                    <div className="text-sm font-medium text-gray-900">{c.authorName || `User ${String(c.userId).substring(0,6)}`}</div>
+                                    <div className="text-sm text-gray-700">{c.text}</div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="mt-4 flex items-start gap-3">
+                        <input
+                            value={commentText}
+                            onChange={(e) => setCommentText(e.target.value)}
+                            placeholder="Write a comment..."
+                            className="flex-1 border rounded-lg px-3 py-2 text-sm bg-white text-gray-900 placeholder:text-gray-500"
+                        />
+                        <button onClick={submitComment} className="px-3 py-2 bg-blue-600 text-white rounded-lg">Reply</button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
