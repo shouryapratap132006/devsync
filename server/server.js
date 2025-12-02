@@ -6,6 +6,10 @@ import bodyParser from "body-parser";
 
 import authRoutes from "./routes/auth.js";
 import roadmapRoutes from "./routes/roadmap.js";
+import goalRoutes from "./routes/goals.js";
+import taskRoutes from "./routes/tasks.js";
+import dashboardRoutes from "./routes/dashboard.js";
+import communityRoutes from "./routes/community.js";
 
 dotenv.config();
 const app = express();
@@ -20,6 +24,10 @@ app.use(bodyParser.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/roadmaps", roadmapRoutes);
+app.use("/api/goals", goalRoutes);
+app.use("/api/tasks", taskRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/community", communityRoutes);
 
 mongoose
   .connect(process.env.DATABASE_URL, {

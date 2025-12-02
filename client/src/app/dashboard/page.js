@@ -80,9 +80,8 @@ export default function Dashboard() {
                 {[...Array(7)].map((_, i) => (
                   <div
                     key={i}
-                    className={`w-6 h-6 rounded-md ${
-                      i < 5 ? "bg-cyan-400" : "bg-gray-200"
-                    }`}
+                    className={`w-6 h-6 rounded-md ${i < 5 ? "bg-cyan-400" : "bg-gray-200"
+                      }`}
                   ></div>
                 ))}
               </div>
