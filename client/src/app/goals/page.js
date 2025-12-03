@@ -12,9 +12,11 @@ import {
 import GoalCard from "./components/GoalCard";
 import TaskItem from "./components/TaskItem";
 import { useRouter } from "next/navigation";
+import { useTheme } from "../context/ThemeContext";
 
 export default function GoalsPage() {
     const router = useRouter();
+    const { theme } = useTheme();
     const [activeTab, setActiveTab] = useState("goals"); // goals | tasks
     const [loading, setLoading] = useState(true);
     const [goals, setGoals] = useState([]);
@@ -40,6 +42,7 @@ export default function GoalsPage() {
         priority: "Medium",
         deadline: "",
         status: "Not Started",
+        progress: 0,
     });
 
     const [newTask, setNewTask] = useState({
@@ -194,6 +197,7 @@ export default function GoalsPage() {
                 priority: goal.priority,
                 deadline: goal.deadline ? goal.deadline.split("T")[0] : "",
                 status: goal.status,
+                progress: goal.progress || 0,
             });
         } else {
             setEditingGoal(null);
@@ -204,6 +208,7 @@ export default function GoalsPage() {
                 priority: "Medium",
                 deadline: "",
                 status: "Not Started",
+                progress: 0,
             });
         }
         setShowGoalModal(true);
@@ -515,7 +520,7 @@ export default function GoalsPage() {
                                 onChange={(e) => setNewGoal({ ...newGoal, description: e.target.value })}
                                 className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-blue-500/20 outline-none resize-none h-32 transition-all"
                             />
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <select
                                     value={newGoal.priority}
                                     onChange={(e) => setNewGoal({ ...newGoal, priority: e.target.value })}
@@ -525,6 +530,15 @@ export default function GoalsPage() {
                                     <option value="Medium">Medium Priority</option>
                                     <option value="Low">Low Priority</option>
                                 </select>
+                                <select
+                                    value={newGoal.status}
+                                    onChange={(e) => setNewGoal({ ...newGoal, status: e.target.value })}
+                                    className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white outline-none"
+                                >
+                                    <option value="Not Started">Not Started</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Completed">Completed</option>
+                                </select>
                                 <input
                                     type="date"
                                     value={newGoal.deadline}
@@ -532,6 +546,26 @@ export default function GoalsPage() {
                                     className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white outline-none"
                                 />
                             </div>
+
+                            {/* Progress Input */}
+                            <div className="mt-4">
+                                <div className="flex justify-between text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                    <label>Progress</label>
+                                    <span>{newGoal.progress}%</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    value={newGoal.progress}
+                                    onChange={(e) => setNewGoal({ ...newGoal, progress: parseInt(e.target.value) })}
+                                    className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+                                    style={{
+                                        background: `linear-gradient(to right, #2563eb ${newGoal.progress}%, ${theme === "dark" ? "#334155" : "#e2e8f0"} ${newGoal.progress}%)`
+                                    }}
+                                />
+                            </div>
+
                             <div className="flex justify-end gap-3 mt-8">
                                 <button onClick={closeGoalModal} className="px-6 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
                                     Cancel
